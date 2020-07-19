@@ -1,4 +1,4 @@
-package mangal10n.vk;
+package mangal10n.vkbot;
 
 import com.petersamokhin.vksdk.core.client.VkApiClient;
 import com.petersamokhin.vksdk.core.http.HttpClient;
@@ -8,7 +8,6 @@ import com.petersamokhin.vksdk.http.VkOkHttpClient;
 
 /**
  * @author func 19.07.2020
- * @project mangal10n
  */
 public class App {
 
