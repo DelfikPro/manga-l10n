@@ -5,6 +5,12 @@ import com.petersamokhin.vksdk.core.http.HttpClient;
 import com.petersamokhin.vksdk.core.model.VkSettings;
 import com.petersamokhin.vksdk.core.model.objects.Message;
 import com.petersamokhin.vksdk.http.VkOkHttpClient;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * @author func 19.07.2020
@@ -12,11 +18,20 @@ import com.petersamokhin.vksdk.http.VkOkHttpClient;
 public class App {
 
 	public static void main(String[] args) {
-		int groupId = 197254109;
-		String accessToken = "ACCESS";
+		Yaml yaml = new Yaml();
+		InputStream inputStream = App.class
+				.getClassLoader()
+				.getResourceAsStream("vk-config.yml");
+
+		Map<String, Object> values = yaml.load(inputStream);
+
 		HttpClient vkHttpClient = new VkOkHttpClient();
 
-		VkApiClient client = new VkApiClient(groupId, accessToken, VkApiClient.Type.Community, new VkSettings(vkHttpClient));
+		VkApiClient client = new VkApiClient(
+				(int) values.get("group-id"),
+				values.get("group-token").toString(),
+				VkApiClient.Type.Community, new VkSettings(vkHttpClient)
+		);
 
 		client.onMessage(event -> {
 			System.out.println(event.getMessage().toString());

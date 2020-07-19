@@ -2,8 +2,11 @@ dependencies {
     implementation project(":manga-image-processing")
     implementation project(":manga-text-recognition")
     implementation project(":manga-translate")
+
     implementation "com.petersamokhin.vksdk:core-jvm:0.0.5"
     implementation "com.petersamokhin.vksdk:http-client-jvm-okhttp:0.0.5"
+
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
 }
 
 jar {
