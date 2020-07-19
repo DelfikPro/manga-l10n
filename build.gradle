@@ -2,15 +2,27 @@ plugins {
     id 'java'
 }
 
-group 'org.example'
-version '1.0-SNAPSHOT'
+group 'manga-l10n'
+version '1.0'
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    mavenLocal()
+}
+
+jar {
+    from sourceSets.main.resources
+    from {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 dependencies {
+    implementation "com.petersamokhin.vksdk:core-jvm:0.0.5"
+    implementation "com.petersamokhin.vksdk:http-client-jvm-okhttp:0.0.5"
+
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
