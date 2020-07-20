@@ -4,8 +4,11 @@ import java.awt.image.BufferedImage;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 
-@FunctionalInterface
 public interface OCRService {
+
+	String getName();
+
+	String getEmoji();
 
 	CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image);
 

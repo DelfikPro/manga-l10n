@@ -29,12 +29,21 @@ import static java.net.Proxy.NO_PROXY;
 public class EasyScreenOCR implements OCRService {
 
 	@Override
+	public String getName() {
+		return "Детектор Okinawa";
+	}
+
+	@Override
+	public String getEmoji() {
+		return "\uD83C\uDF75";
+	}
+
+	@Override
 	public CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image) {
 		CompletableFuture<String> future = new CompletableFuture<>();
 
 		executorService.submit(() -> {
 			try {
-				System.out.println("Beginning...");
 				Request request = new Request("https://online.easyscreenocr.com/Home/GetNewId", Method.GET);
 
 				String id = new String(request.execute(NO_PROXY).getBody())
@@ -49,7 +58,7 @@ public class EasyScreenOCR implements OCRService {
 //				publisher.build(stream);
 //				byte[] rawBody = stream.toByteArray();
 //				System.out.println(new String(rawBody));
-				System.out.println("Created webkit form with boundary '" + publisher.getBoundary() + "'");
+//				System.out.println("Created webkit form with boundary '" + publisher.getBoundary() + "'");
 //				System.out.println("Crafting request: content length is " + rawBody.length);
 
 				HttpRequest uploadRequest = HttpRequest.newBuilder()
@@ -62,14 +71,14 @@ public class EasyScreenOCR implements OCRService {
 
 				HttpClient client = HttpClient.newHttpClient();
 				HttpResponse<String> uploadResponse = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
-				System.out.println(uploadResponse.body());
+				System.out.println("[Okinawa] " + uploadResponse.body());
 
 				Response startResponse = new Request("https://online.easyscreenocr.com/Home/StartConvert", Method.GET)
 						.param("Id", id)
 						.param("SelectedLanguage", "1")
 						.execute(NO_PROXY);
 
-				System.out.println(new String(startResponse.getBody()));
+				System.out.println("[Okinawa] " + new String(startResponse.getBody()));
 
 				Request attempt = new Request("https://online.easyscreenocr.com/Home/GetDownloadLink", Method.GET);
 
@@ -81,7 +90,7 @@ public class EasyScreenOCR implements OCRService {
 					try {
 						Response response = attempt.execute(NO_PROXY);
 						String status = new String(response.getBody());
-						System.out.println("Performing attempt #" + attemptId[0]++ + ": " + status);
+						System.out.println("[Okinawa] Performing attempt #" + attemptId[0]++ + ": " + status);
 						if (status.contains("Fail")) return;
 						if (status.contains("True")) {
 

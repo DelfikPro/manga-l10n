@@ -87,7 +87,6 @@ public class LongPoll extends VkModule implements Runnable {
 				switch (eventType) {
 					case "message_new":
 						String message1 = object.getJSONObject("message").toString();
-						System.out.println(message1);
 						Message message = this.getBot().getGson().fromJson(message1, Message.class);
 //						System.out.println(message);
 
