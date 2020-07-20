@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +26,14 @@ public class MultiPartBodyPublisher {
 
 		while (partsIterator.hasNext())
 			stream.write(partsIterator.next());
+	}
+
+	public HttpRequest.BodyPublisher buildForJavaNet() {
+		if (partsSpecificationList.size() == 0) {
+			throw new IllegalStateException("Must have at least one part to build multipart message.");
+		}
+		addFinalBoundaryPart();
+		return HttpRequest.BodyPublishers.ofByteArrays(PartsIterator::new);
 	}
 
 	private static final char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();

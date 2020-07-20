@@ -3,6 +3,7 @@ package clepto.vk;
 import clepto.net.Method;
 import clepto.net.Request;
 import clepto.vk.groups.LongPollData;
+import clepto.vk.model.Message;
 import lombok.Setter;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,7 +16,7 @@ public class LongPoll extends VkModule implements Runnable {
 	protected String ts;
 
 	public interface Handler {
-		String handle(int peer, int sender, String message);
+		String handle(int peer, int sender, Message message);
 	}
 
 	@Setter
@@ -85,29 +86,22 @@ public class LongPoll extends VkModule implements Runnable {
 				
 				switch (eventType) {
 					case "message_new":
-						JSONObject msg = object.getJSONObject("message");
+						String message1 = object.getJSONObject("message").toString();
+						System.out.println(message1);
+						Message message = this.getBot().getGson().fromJson(message1, Message.class);
+//						System.out.println(message);
 
-						String text;
-						int from_id;
-						int peer_id = msg.getInt("peer_id");
-						try {
-							from_id = msg.getInt("user_id");
-						} catch (Exception ex) {
-							from_id = msg.getInt("from_id");
-						}
-						try {
-							text = msg.getString("body");
-						} catch (Exception ex) {
-							text = msg.getString("text");
-						}
-						
+						String text = message.body != null ? message.body : message.text;
+						int from_id = message.user_id != 0 ? message.user_id : message.from_id;
+						int peer_id = message.peer_id;
+
 						lastPeer = peer_id;
 						
 						text = text.replaceAll("\\[.*]", "");
 //						String message = MessageHandler.handle(text, from_id, peer_id);
-						if (text.length() > 0 && handler != null) {
+						if (handler != null) {
 							try {
-								String apply = handler.handle(peer_id, from_id, text);
+								String apply = handler.handle(peer_id, from_id, message);
 								if (apply != null) getBot().messages().send(peer_id, apply);
 							} catch (Exception e) {
 								e.printStackTrace();

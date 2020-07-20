@@ -74,8 +74,8 @@ public class Request {
 		try {
 			code = con.getResponseCode();
 			message = con.getResponseMessage();
-			System.out.println(code + ": " + message);
 		} catch (IOException ex) {
+			ex.printStackTrace();
 			System.out.println("sad :c");
 			return new Response(503, "Service unavailable", new HashMap<>(), new HashMap<>(), new byte[0]);
 		}
