@@ -1,0 +1,17 @@
+package mangal10n;
+
+public enum Language {
+
+	RUSSIAN,
+	ENGLISH,
+	GERMAN,
+	FRENCH,
+	SPANISH,
+	PORTUGUESE,
+	ITALIAN,
+	DUTCH,
+	POLISH,
+	JAPANESE,
+	CHINESE,
+
+}
