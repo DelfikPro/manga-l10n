@@ -3,3 +3,4 @@ gradle
 .idea
 !.idea/vcs.xml
 build
+config.yml

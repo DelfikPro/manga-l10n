@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 public class EasyScreenOCRTest {
 
 	public static void main(String[] args) throws IOException {
+
 		EasyScreenOCR ocr = new EasyScreenOCR();
 		ocr.doRecognition(Executors.newSingleThreadScheduledExecutor(), Files.readAllBytes(new File("C:/Users/DelfikPro/Desktop/32.jpg").toPath()))
 				.exceptionally(t -> {

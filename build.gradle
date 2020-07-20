@@ -3,7 +3,7 @@ apply plugin: 'java'
 subprojects {
     apply plugin: 'java'
 
-    targetCompatibility = sourceCompatibility = '1.8'
+    targetCompatibility = sourceCompatibility = '11'
 
     repositories {
         mavenLocal()

@@ -7,8 +7,15 @@ import mangal10n.textrecognition.OCRService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -25,7 +32,6 @@ public class EasyScreenOCR implements OCRService {
 	public CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image) {
 		CompletableFuture<String> future = new CompletableFuture<>();
 
-		System.out.println("Submitting...");
 		executorService.submit(() -> {
 			try {
 				System.out.println("Beginning...");
@@ -39,34 +45,31 @@ public class EasyScreenOCR implements OCRService {
 						.addPart("\"Index\"", "0")
 						.addPart("\"file\"", () -> new ByteArrayInputStream(image), "\"32.jpg\"", "image/jpeg");
 
-				ByteArrayOutputStream stream = new ByteArrayOutputStream();
-				publisher.build(stream);
-				byte[] rawBody = stream.toByteArray();
-				System.out.println(new String(rawBody));
+//				ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//				publisher.build(stream);
+//				byte[] rawBody = stream.toByteArray();
+//				System.out.println(new String(rawBody));
 				System.out.println("Created webkit form with boundary '" + publisher.getBoundary() + "'");
-				System.out.println("Crafting request: content length is " + rawBody.length);
-				Request uploadRequest = new Request("https://online.easyscreenocr.com/Home/Upload", Method.POST)
-						.header("content-type", "multipart/form-data; boundary=" + publisher.getBoundary())
+//				System.out.println("Crafting request: content length is " + rawBody.length);
+
+				HttpRequest uploadRequest = HttpRequest.newBuilder()
+						.uri(URI.create("https://online.easyscreenocr.com/Home/Upload"))
+						.header("Content-Type", "multipart/form-data; boundary=" + publisher.getBoundary())
 						.header("x-requested-with", "XMLHttpRequest")
-						.header("Content-Length", String.valueOf(rawBody.length))
-						.header("content-length", String.valueOf(rawBody.length))
-						.header("content-Length", String.valueOf(rawBody.length))
-						.header("Content-Length", String.valueOf(rawBody.length))
-						.header("accept", "application/json")
-						.header("accept-encoding", "gzip, deflate, br")
-						.header("referer", "https://online.easyscreenocr.com/Home/ChineseOCR")
-						.header("origin", "https://online.easyscreenocr.com")
-						.header("cookie", "__cfduid=d4a659d0110a6c294915e8d2efc2f0b371595235601; _ga=GA1.2.945092593.1595235620; _gid=GA1.2.933254473.1595235620; __atuvc=6%7C30; __atuvs=5f15951789b38942000")
-						.header("sec-fetch-dest", "empty")
-						.header("sec-fetch-mode",  "cors")
-						.header("sec-fetch-site",  "same-origin")
-						.header("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36")
-						.body(rawBody);
-				System.out.println("Sending upload request...");
-				Response uploadResponse = uploadRequest
+						.timeout(Duration.ofMinutes(1))
+						.POST(publisher.buildForJavaNet())
+						.build();
+
+				HttpClient client = HttpClient.newHttpClient();
+				HttpResponse<String> uploadResponse = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
+				System.out.println(uploadResponse.body());
+
+				Response startResponse = new Request("https://online.easyscreenocr.com/Home/StartConvert", Method.GET)
+						.param("Id", id)
+						.param("SelectedLanguage", "1")
 						.execute(NO_PROXY);
 
-				System.out.println("Upload response was: " + new String(uploadResponse.getBody()));
+				System.out.println(new String(startResponse.getBody()));
 
 				Request attempt = new Request("https://online.easyscreenocr.com/Home/GetDownloadLink", Method.GET);
 
@@ -84,7 +87,8 @@ public class EasyScreenOCR implements OCRService {
 
 							Request download = new Request("https://online.easyscreenocr.com/UploadedImageForOCR/" + id + "/" + id + ".zip", Method.GET);
 							Response downloadResponse = download.execute(NO_PROXY);
-							ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(downloadResponse.getBody()));
+							byte[] body = downloadResponse.getBody();
+							ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(body));
 							ZipEntry entry = zip.getNextEntry();
 							byte[] buffer = new byte[(int) entry.getSize()];
 							int read = zip.read(buffer, 0, buffer.length);
@@ -97,6 +101,7 @@ public class EasyScreenOCR implements OCRService {
 						throw new IllegalStateException("Invalid job status: " + status);
 					} catch (Exception ex) {
 						future.completeExceptionally(ex);
+						task.get().cancel(true);
 					}
 				}, 1, 1000, TimeUnit.MILLISECONDS));
 			} catch (Exception ex) {
