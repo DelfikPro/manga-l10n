@@ -1,4 +1,5 @@
 dependencies {
+    implementation project(":manga-core")
     implementation project(":manga-image-processing")
     implementation project(":manga-text-recognition")
     implementation project(":manga-translate")

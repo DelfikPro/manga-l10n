@@ -25,7 +25,6 @@ subprojects {
         annotationProcessor 'org.projectlombok:lombok:1.18.12'
         compileOnly 'org.projectlombok:lombok:1.18.12'
         implementation 'com.google.code.gson:gson:2.8.6'
-        implementation project(":manga-core")
         implementation 'com.google.code.gson:gson:2.8.6'
         implementation 'org.json:json:20200518'
 

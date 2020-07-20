@@ -2,10 +2,7 @@ package clepto.net;
 
 import lombok.ToString;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
@@ -21,6 +18,7 @@ public class Request {
 	private final Map<String, String> headers = new HashMap<>();
 	private final Collection<Cookie> cookies = new ArrayList<>();
 	private final Map<String, String> body = new HashMap<>();
+	private byte[] rawBody;
 
 	public Request(String address, Method method) {
 		this.address = address;
@@ -40,7 +38,13 @@ public class Request {
 				for (Cookie cookie : cookies) b.append(cookie).append("; ");
 				con.setRequestProperty("cookie", b.toString());
 			}
-			if (!body.isEmpty()) {
+			if (rawBody != null) {
+				con.setDoOutput(true);
+				OutputStream os = con.getOutputStream();
+				os.write(rawBody);
+				os.flush();
+				os.close();
+			} else if (!body.isEmpty()) {
 				con.setDoOutput(true);
 				DataOutputStream out = new DataOutputStream(con.getOutputStream());
 				for (Iterator<Map.Entry<String, String>> iterator = body.entrySet().iterator(); iterator.hasNext(); ) {
@@ -70,6 +74,7 @@ public class Request {
 		try {
 			code = con.getResponseCode();
 			message = con.getResponseMessage();
+			System.out.println(code + ": " + message);
 		} catch (IOException ex) {
 			System.out.println("sad :c");
 			return new Response(503, "Service unavailable", new HashMap<>(), new HashMap<>(), new byte[0]);
@@ -113,6 +118,11 @@ public class Request {
 
 	public Request body(String key, String value) {
 		body.put(encode(key), encode(value));
+		return this;
+	}
+
+	public Request body(byte[] rawBody) {
+		this.rawBody = rawBody;
 		return this;
 	}
 
