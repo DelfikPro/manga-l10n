@@ -1,14 +1,10 @@
-package mangal10n.textrecognition;
+package mangal10n.textrecognition.easyscreen;
 
-import clepto.DataIO;
-
-import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
-import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class EasyScreenOCRTest {
