@@ -1,8 +1,9 @@
-package mangal10n.textrecognition;
+package mangal10n.textrecognition.easyscreen;
 
 import clepto.net.Method;
 import clepto.net.Request;
 import clepto.net.Response;
+import mangal10n.textrecognition.OCRService;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
