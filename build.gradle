@@ -14,11 +14,6 @@ subprojects {
         mavenCentral()
     }
 
-    sourceSets.main {
-        java.srcDir 'src'
-        resources.srcDir 'resources'
-    }
-
     ext {
         libraries = [
                 lombok: ['org.projectlombok:lombok:1.18.12'],
