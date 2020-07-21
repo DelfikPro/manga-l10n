@@ -4,5 +4,4 @@ include 'manga-core'
 include 'manga-vk-bot'
 include 'manga-text-recognition'
 include 'manga-image-processing'
-include 'manga-translate'
 

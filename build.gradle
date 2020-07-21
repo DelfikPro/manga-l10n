@@ -1,35 +1,31 @@
-apply plugin: 'java'
-
 subprojects {
     apply plugin: 'java'
 
-    targetCompatibility = sourceCompatibility = '11'
+    project.group = 'manga-l10n'
+    project.version = '1.0-SNAPSHOT'
+
+    compileJava {
+        sourceCompatibility = targetCompatibility = 11
+        options.encoding = 'UTF-8'
+    }
 
     repositories {
         mavenLocal()
         mavenCentral()
     }
 
-    compileJava.options.encoding 'UTF-8'
-
-    sourceSets.main {
-        java.srcDir 'src'
-        resources.srcDir 'resources'
-    }
-
-    tasks.withType(JavaCompile) {
-        options.encoding 'UTF-8'
+    ext {
+        libraries = [
+                lombok: ['org.projectlombok:lombok:1.18.12'],
+                json: ['org.json:json:20200518'],
+                gson: ['com.google.code.gson:gson:2.8.6']
+        ]
     }
 
     dependencies {
-        annotationProcessor 'org.projectlombok:lombok:1.18.12'
-        compileOnly 'org.projectlombok:lombok:1.18.12'
-        implementation 'com.google.code.gson:gson:2.8.6'
-        implementation 'com.google.code.gson:gson:2.8.6'
-        implementation 'org.json:json:20200518'
-
+        annotationProcessor libraries.lombok
+        compileOnly libraries.lombok
     }
-
 }
 
 
