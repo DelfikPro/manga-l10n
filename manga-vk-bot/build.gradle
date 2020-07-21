@@ -2,6 +2,8 @@ dependencies {
     implementation project(":manga-core")
     implementation project(":manga-image-processing")
     implementation project(":manga-text-recognition")
+    implementation libraries.json
+    implementation libraries.gson
     implementation "com.petersamokhin.vksdk:core-jvm:0.0.5"
     implementation "com.petersamokhin.vksdk:http-client-jvm-okhttp:0.0.5"
 }
