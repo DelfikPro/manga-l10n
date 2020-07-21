@@ -22,11 +22,9 @@ public class EasyScreenOCRTest {
 
 	@Test
 	public void testSimpleText() throws IOException {
-		final String expectedValue = IOUtils.resourceToString("/simple_text.txt", StandardCharsets.UTF_8)
+		final String expectedValue = IOUtils.resourceToString("/simple_text_v1.txt", StandardCharsets.UTF_8)
 				.replaceAll("\r\n", "\n");
-
-		byte[] imageBytes = IOUtils.resourceToByteArray("/simple_text.jpg");
-		assertNotNull(imageBytes);
+		final byte[] imageBytes = IOUtils.resourceToByteArray("/simple_text.jpg");
 
 		String recognition = ocr.doRecognition(imageBytes);
 		assertNotNull(recognition);
