@@ -8,6 +8,7 @@ import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
 import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
+import lombok.extern.slf4j.Slf4j;
 import mangal10n.ConfigUtils;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
 /**
  * @author func 19.07.2020
  */
+@Slf4j
 public class App {
 
 	private static VKBot bot;
@@ -42,11 +44,11 @@ public class App {
 	};
 
 	public static void main(String[] args) {
-		System.out.println("Hello there, fellow traveler.");
+		log.info("Hello there, fellow traveler.");
 
 		Map<String, String> config = ConfigUtils.readYamlConfigFromFile("config.yml");
 		if (config.isEmpty()) {
-			System.out.println("No configuration file found!");
+			log.error("No configuration file found!");
 			return;
 		}
 
@@ -58,7 +60,7 @@ public class App {
 
 	private static String handle(int peer, int sender, Message message) {
 		if (message.getAttachments() == null) return null;
-		System.out.println(message);
+		log.debug(message.toString());
 		for (Attachment attachment : message.attachments) {
 			if (!(attachment instanceof Photo)) continue;
 			Photo photo = (Photo) attachment;

@@ -5,10 +5,12 @@ import clepto.net.Request;
 import clepto.vk.groups.LongPollData;
 import clepto.vk.model.Message;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@Slf4j
 public class LongPoll extends VkModule implements Runnable {
 
 	protected String key;
@@ -45,7 +47,7 @@ public class LongPoll extends VkModule implements Runnable {
 
 	public void run() {
 		requestLongPollServer();
-		System.out.println("VK LongPoll server started successfully.");
+		log.info("VK LongPoll server started successfully.");
 		while (true) {
 
 			Request request = new Request((server.startsWith("http") ? "" : "https://") + server, Method.GET);

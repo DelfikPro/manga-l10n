@@ -1,10 +1,12 @@
 package clepto.vk;
 
 import clepto.net.Response;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.Proxy;
 import java.util.Random;
 
+@Slf4j
 public class Messages extends VkModule {
 
 	private final Random random = new Random();
@@ -18,8 +20,8 @@ public class Messages extends VkModule {
 				.param("peer_id", String.valueOf(peer))
 				.param("random_id", String.valueOf(random.nextLong()))
 				.body("message", message).execute(Proxy.NO_PROXY);
-		System.out.println(response);
-		System.out.println(new String(response.getBody()));
+		log.debug(response.toString());
+		log.debug(new String(response.getBody()));
 	}
 
 }

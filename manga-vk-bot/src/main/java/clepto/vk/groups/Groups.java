@@ -1,10 +1,12 @@
 package clepto.vk.groups;
 
 import clepto.vk.VkModule;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
 import clepto.vk.VKBot;
 
+@Slf4j
 public class Groups extends VkModule {
 
 	public Groups(VKBot bot) {
@@ -23,7 +25,7 @@ public class Groups extends VkModule {
 					json.getString("ts")
 			);
 		} catch (JSONException ex) {
-			System.out.println(json);
+			log.debug(json.toString());
 			throw ex;
 		}
 

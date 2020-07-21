@@ -5,6 +5,7 @@ dependencies {
     implementation libraries.json
     implementation libraries.gson
     implementation libraries.vksdk
+    implementation libraries.logback
 }
 
 jar {

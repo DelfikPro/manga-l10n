@@ -1,5 +1,6 @@
 package mangal10n.textrecognition.easyscreen;
 
+import lombok.extern.slf4j.Slf4j;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import okhttp3.*;
@@ -13,6 +14,7 @@ import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+@Slf4j
 public class EasyScreenOCR implements OCRService {
 
 	private static final int MAX_TRIES = 5;
@@ -33,16 +35,16 @@ public class EasyScreenOCR implements OCRService {
 			final String id = requestId();
 
 			final String resultSendFile = sendFile(id, image);
-			System.out.println("[Okinawa] " + resultSendFile);
+			log.debug("[Okinawa] {}", resultSendFile);
 
 			final String resultStartConvert = requestStartConvert(id);
-			System.out.println("[Okinawa] " + resultStartConvert);
+			log.debug("[Okinawa] {}", resultStartConvert);
 
 			int tries = 0;
 			String status;
 			do {
 				status = requestGetDownloadLink(id);
-				System.out.printf("[Okinawa] Performing attempt #%d: %s\n", tries + 1, status);
+				log.debug("[Okinawa] Performing attempt #{}: {}", tries + 1, status);
 
 				if (!status.contains("True") && !status.contains("False")) {
 					throw new OCRException("Invalid job status: " + status);

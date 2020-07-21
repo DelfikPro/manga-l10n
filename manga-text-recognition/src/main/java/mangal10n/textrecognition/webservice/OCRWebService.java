@@ -2,6 +2,7 @@ package mangal10n.textrecognition.webservice;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
  * @author func 20.07.2020
  * @project manga-l10n
  */
+@Slf4j
 public class OCRWebService implements OCRService {
 
 	// Service: http://www.ocrwebservice.com/
@@ -73,7 +75,7 @@ public class OCRWebService implements OCRService {
 								.collect(Collectors.joining("\n"))
 								.trim();
 					} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-						System.out.println("OCR Error Message: Unauthorizied request");
+						log.warn("OCR Error Message: Unauthorizied request");
 					}
 				}
 			}

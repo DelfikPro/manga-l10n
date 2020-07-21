@@ -24,6 +24,9 @@ subprojects {
                 yaml      : ['org.yaml:snakeyaml:1.26'],
                 commons_io: ['commons-io:commons-io:2.7'],
                 okhttp    : ['com.squareup.okhttp3:okhttp:4.8.0'],
+                slf4j     : ['org.slf4j:slf4j-api:1.7.30'],
+                logback   : ['ch.qos.logback:logback-core:1.2.3',
+                             'ch.qos.logback:logback-classic:1.2.3'],
                 junit     : ['junit:junit:4.12']
         ]
     }
@@ -31,6 +34,7 @@ subprojects {
     dependencies {
         annotationProcessor libraries.lombok
         compileOnly libraries.lombok
+        implementation libraries.slf4j
 
         testImplementation libraries.junit
     }

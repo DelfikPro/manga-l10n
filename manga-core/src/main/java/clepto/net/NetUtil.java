@@ -1,6 +1,7 @@
 package clepto.net;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 
+@Slf4j
 @UtilityClass
 public class NetUtil {
 
@@ -52,7 +54,7 @@ public class NetUtil {
 			addr = InetAddress.getLocalHost();
 			return comp = addr.getHostName();
 		} catch (UnknownHostException ex) {
-			System.out.println("Hostname can not be resolved");
+			log.error("Hostname can not be resolved");
 			return "???";
 		}
 	}

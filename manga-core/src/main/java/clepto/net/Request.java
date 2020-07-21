@@ -1,6 +1,7 @@
 package clepto.net;
 
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -9,6 +10,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 
+@Slf4j
 @ToString
 public class Request {
 
@@ -75,8 +77,7 @@ public class Request {
 			code = con.getResponseCode();
 			message = con.getResponseMessage();
 		} catch (IOException ex) {
-			ex.printStackTrace();
-			System.out.println("sad :c");
+			log.error("sad :c", ex);
 			return new Response(503, "Service unavailable", new HashMap<>(), new HashMap<>(), new byte[0]);
 		}
 		Map<String, String> headers = new HashMap<>();

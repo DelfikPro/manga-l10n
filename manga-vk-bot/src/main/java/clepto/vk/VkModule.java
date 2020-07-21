@@ -5,6 +5,7 @@ import clepto.net.Request;
 import clepto.net.Response;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -14,6 +15,7 @@ import java.net.Proxy;
 
 import static lombok.AccessLevel.PROTECTED;
 
+@Slf4j
 @RequiredArgsConstructor(access = PROTECTED)
 @Getter
 public abstract class VkModule {
@@ -51,7 +53,7 @@ public abstract class VkModule {
 		try {
 			return json.getJSONObject("response");
 		} catch (JSONException ex) {
-			System.out.println(json);
+			log.debug(json.toString());
 			throw ex;
 		}
 	}

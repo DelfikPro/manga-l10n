@@ -1,6 +1,7 @@
 dependencies {
     implementation libraries.gson
     implementation libraries.okhttp
+    implementation libraries.logback
     implementation project(":manga-core")
 
     testImplementation libraries.commons_io
