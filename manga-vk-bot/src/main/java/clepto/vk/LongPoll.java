@@ -4,11 +4,10 @@ import clepto.net.Method;
 import clepto.net.Request;
 import clepto.vk.groups.LongPollData;
 import clepto.vk.model.Message;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 @Slf4j
 public class LongPoll extends VkModule implements Runnable {
@@ -57,17 +56,17 @@ public class LongPoll extends VkModule implements Runnable {
 			request.param("wait", "25");
 			request.param("mode", "2");
 
-			JSONObject response = execute(request, false);
+			JsonObject response = execute(request, false);
 //			System.out.println(response);
 
 
 			try {
-				String _ts = response.getString("ts");
-				JSONArray updates = response.getJSONArray("updates");
-				if (updates.length() != 0) processEvent(updates);
+				String _ts = response.get("ts").getAsString();
+				JsonArray updates = response.getAsJsonArray("updates");
+				if (updates.size() != 0) processEvent(updates);
 				ts = _ts;
 				failed = 0;
-			} catch (JSONException ex) {
+			} catch (Exception ex) {
 				if (failed > 10) throw new RuntimeException("Не удалось подключиться к LongPoll.");
 				else {
 					requestLongPollServer();
@@ -78,17 +77,17 @@ public class LongPoll extends VkModule implements Runnable {
 	}
 
 
-	private void processEvent(JSONArray array) {
-		for (int i = 0; i < array.length(); ++i) {
+	private void processEvent(JsonArray array) {
+		for (int i = 0; i < array.size(); ++i) {
 			try {
-				JSONObject arrayItem = array.getJSONObject(i);
-				String eventType = arrayItem.getString("type");
-				JSONObject object = arrayItem.getJSONObject("object");
+				JsonObject arrayItem = array.get(i).getAsJsonObject();
+				String eventType = arrayItem.get("type").getAsString();
+				JsonObject object = arrayItem.getAsJsonObject("object");
 
 
 				switch (eventType) {
 					case "message_new":
-						String message1 = object.getJSONObject("message").toString();
+						String message1 = object.getAsJsonObject("message").toString();
 						Message message = this.getBot().getGson().fromJson(message1, Message.class);
 //						System.out.println(message);
 
@@ -111,7 +110,7 @@ public class LongPoll extends VkModule implements Runnable {
 						break;
 				}
 				
-			} catch (JSONException ignored) {}
+			} catch (Exception ignored) {}
 		}
 	}
 
