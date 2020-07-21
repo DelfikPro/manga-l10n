@@ -41,70 +41,32 @@ public class EasyScreenOCR implements OCRService {
 
 		executorService.submit(() -> {
 			try {
-				Request request = new Request("https://online.easyscreenocr.com/Home/GetNewId", Method.GET);
+				final String id = requestId();
 
-				String id = new String(request.execute(NO_PROXY).getBody())
-						.replace("\"", "");
+				final String resultSendFile = sendFile(id, image);
+				System.out.println("[Okinawa] " + resultSendFile);
 
-				MultiPartBodyPublisher publisher = new MultiPartBodyPublisher()
-						.addPart("\"Id\"", id)
-						.addPart("\"Index\"", "0")
-						.addPart("\"file\"", () -> new ByteArrayInputStream(image), "\"32.jpg\"", "image/jpeg");
-
-//				ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//				publisher.build(stream);
-//				byte[] rawBody = stream.toByteArray();
-//				System.out.println(new String(rawBody));
-//				System.out.println("Created webkit form with boundary '" + publisher.getBoundary() + "'");
-//				System.out.println("Crafting request: content length is " + rawBody.length);
-
-				HttpRequest uploadRequest = HttpRequest.newBuilder()
-						.uri(URI.create("https://online.easyscreenocr.com/Home/Upload"))
-						.header("Content-Type", "multipart/form-data; boundary=" + publisher.getBoundary())
-						.header("x-requested-with", "XMLHttpRequest")
-						.timeout(Duration.ofMinutes(1))
-						.POST(publisher.buildForJavaNet())
-						.build();
-
-				HttpClient client = HttpClient.newHttpClient();
-				HttpResponse<String> uploadResponse = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
-				System.out.println("[Okinawa] " + uploadResponse.body());
-
-				Response startResponse = new Request("https://online.easyscreenocr.com/Home/StartConvert", Method.GET)
-						.param("Id", id)
-						.param("SelectedLanguage", "1")
-						.execute(NO_PROXY);
-
-				System.out.println("[Okinawa] " + new String(startResponse.getBody()));
-
-				Request attempt = new Request("https://online.easyscreenocr.com/Home/GetDownloadLink", Method.GET);
-
-				attempt.param("Id", id);
+				final String resultStartConvert = requestStartConvert(id);
+				System.out.println("[Okinawa] " + resultStartConvert);
 
 				AtomicReference<ScheduledFuture<?>> task = new AtomicReference<>();
-				int[] attemptId = {1};
+				int[] attemptId = { 1 };
 				task.set(executorService.scheduleWithFixedDelay(() -> {
 					try {
-						Response response = attempt.execute(NO_PROXY);
-						String status = new String(response.getBody());
+						String status = requestGetDownloadLink(id);
 						System.out.println("[Okinawa] Performing attempt #" + attemptId[0]++ + ": " + status);
-						if (status.contains("Fail")) return;
-						if (status.contains("True")) {
 
-							Request download = new Request("https://online.easyscreenocr.com/UploadedImageForOCR/" + id + "/" + id + ".zip", Method.GET);
-							Response downloadResponse = download.execute(NO_PROXY);
-							byte[] body = downloadResponse.getBody();
-							ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(body));
-							ZipEntry entry = zip.getNextEntry();
-							byte[] buffer = new byte[(int) entry.getSize()];
-							int read = zip.read(buffer, 0, buffer.length);
-							if (read == 0) throw new IOException("Something went wrong");
-							future.complete(new String(buffer, StandardCharsets.UTF_8));
-							task.get().cancel(true);
+						if (status.contains("Fail")) {
 							return;
-						}
+						} else if (status.contains("True")) {
+							byte[] body = downloadFile(id);
+							String unpackedBody = unpack(body);
 
-						throw new IllegalStateException("Invalid job status: " + status);
+							future.complete(unpackedBody);
+							task.get().cancel(true);
+						} else {
+							throw new IllegalStateException("Invalid job status: " + status);
+						}
 					} catch (Exception ex) {
 						future.completeExceptionally(ex);
 						task.get().cancel(true);
@@ -119,4 +81,64 @@ public class EasyScreenOCR implements OCRService {
 		return future;
 	}
 
+	private String requestId() {
+		Request request = new Request("https://online.easyscreenocr.com/Home/GetNewId", Method.GET);
+		return new String(request.execute(NO_PROXY).getBody()).replace("\"", "");
+	}
+
+	private String sendFile(String id, byte[] bytes) throws IOException, InterruptedException {
+		MultiPartBodyPublisher publisher = new MultiPartBodyPublisher()
+				.addPart("\"Id\"", id)
+				.addPart("\"Index\"", "0")
+				.addPart("\"file\"", () -> new ByteArrayInputStream(bytes), "\"32.jpg\"", "image/jpeg");
+
+		HttpRequest uploadRequest = HttpRequest.newBuilder()
+				.uri(URI.create("https://online.easyscreenocr.com/Home/Upload"))
+				.header("Content-Type", "multipart/form-data; boundary=" + publisher.getBoundary())
+				.header("x-requested-with", "XMLHttpRequest")
+				.timeout(Duration.ofMinutes(1))
+				.POST(publisher.buildForJavaNet())
+				.build();
+
+		HttpClient client = HttpClient.newHttpClient();
+		HttpResponse<String> uploadResponse = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
+
+		return uploadResponse.body();
+	}
+
+	private String requestStartConvert(String id) {
+		Response startResponse = new Request("https://online.easyscreenocr.com/Home/StartConvert", Method.GET)
+				.param("Id", id)
+				.param("SelectedLanguage", "1")
+				.execute(NO_PROXY);
+
+		return new String(startResponse.getBody());
+	}
+
+	private String requestGetDownloadLink(String id) {
+		Request attempt = new Request("https://online.easyscreenocr.com/Home/GetDownloadLink", Method.GET);
+		attempt.param("Id", id);
+		Response response = attempt.execute(NO_PROXY);
+
+		return new String(response.getBody());
+	}
+
+	private byte[] downloadFile(String id) {
+		Request download = new Request("https://online.easyscreenocr.com/UploadedImageForOCR/" + id + "/" + id + ".zip", Method.GET);
+		Response downloadResponse = download.execute(NO_PROXY);
+		return downloadResponse.getBody();
+	}
+
+	private String unpack(byte[] bytes) throws IOException {
+		try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(bytes))) {
+			ZipEntry entry = zip.getNextEntry();
+			byte[] buffer = new byte[(int) entry.getSize()];
+			int read = zip.read(buffer, 0, buffer.length);
+			if (read == 0) {
+				throw new IOException("Something went wrong");
+			} else {
+				return new String(buffer, StandardCharsets.UTF_8);
+			}
+		}
+	}
 }
