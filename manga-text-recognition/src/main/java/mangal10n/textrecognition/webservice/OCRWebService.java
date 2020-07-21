@@ -51,48 +51,6 @@ public class OCRWebService implements OCRService {
 	}
 
 	@Override
-	public CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image) {
-		CompletableFuture<String> future = new CompletableFuture<>();
-
-		System.out.println();
-		executorService.submit(() -> {
-
-			try {
-				for (WebServerUser user : users) {
-					HttpURLConnection connection = createConnection(user, image);
-
-					try (val stream = connection.getOutputStream()) {
-						stream.write(image);
-						int httpCode = connection.getResponseCode();
-
-						if (httpCode == HttpURLConnection.HTTP_OK) {
-							String responseString = readString(connection.getInputStream());
-							ResponseField response = gson.fromJson(responseString, ResponseField.class);
-
-							future.complete(response.getOcrText().stream()
-											.map(list -> String.join("  ", list))
-											.collect(Collectors.joining("\n"))
-										   );
-							break;
-						} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
-							System.out.println("OCR Error Message: Unauthorizied request");
-						}
-					} catch (IOException ex) {
-						future.completeExceptionally(ex);
-					} finally {
-						connection.disconnect();
-					}
-				}
-				future.complete("Халява закончилась :L");
-			} catch (Exception ex) {
-				future.completeExceptionally(ex);
-			}
-
-		});
-		return future;
-	}
-
-	@Override
 	public String doRecognition(byte[] image) {
 		try {
 			for (WebServerUser user : users) {

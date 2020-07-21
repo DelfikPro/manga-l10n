@@ -37,52 +37,6 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	@Override
-	public CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image) {
-		CompletableFuture<String> future = new CompletableFuture<>();
-
-		executorService.submit(() -> {
-			try {
-				final String id = requestId();
-
-				final String resultSendFile = sendFile(id, image);
-				System.out.println("[Okinawa] " + resultSendFile);
-
-				final String resultStartConvert = requestStartConvert(id);
-				System.out.println("[Okinawa] " + resultStartConvert);
-
-				AtomicReference<ScheduledFuture<?>> task = new AtomicReference<>();
-				int[] attemptId = { 1 };
-				task.set(executorService.scheduleWithFixedDelay(() -> {
-					try {
-						String status = requestGetDownloadLink(id);
-						System.out.println("[Okinawa] Performing attempt #" + attemptId[0]++ + ": " + status);
-
-						if (status.contains("Fail")) {
-							return;
-						} else if (status.contains("True")) {
-							byte[] body = downloadFile(id);
-							String unpackedBody = unpack(body);
-
-							future.complete(unpackedBody);
-							task.get().cancel(true);
-						} else {
-							throw new IllegalStateException("Invalid job status: " + status);
-						}
-					} catch (Exception ex) {
-						future.completeExceptionally(ex);
-						task.get().cancel(true);
-					}
-				}, 1, 1000, TimeUnit.MILLISECONDS));
-			} catch (Exception ex) {
-				future.completeExceptionally(ex);
-			}
-		});
-
-
-		return future;
-	}
-
-	@Override
 	public String doRecognition(byte[] image) {
 		try {
 			final String id = requestId();
