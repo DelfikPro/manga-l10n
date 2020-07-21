@@ -15,6 +15,8 @@ import java.util.zip.ZipInputStream;
 
 public class EasyScreenOCR implements OCRService {
 
+	private static final int MAX_TRIES = 5;
+
 	@Override
 	public String getName() {
 		return "Детектор Okinawa";
@@ -36,19 +38,26 @@ public class EasyScreenOCR implements OCRService {
 			final String resultStartConvert = requestStartConvert(id);
 			System.out.println("[Okinawa] " + resultStartConvert);
 
-			//FIXME повторяющаяся операция!
-			String status = requestGetDownloadLink(id);
-			System.out.println("[Okinawa] Performing attempt: " + status);
+			int tries = 0;
+			String status;
+			do {
+				status = requestGetDownloadLink(id);
+				System.out.printf("[Okinawa] Performing attempt #%d: %s\n", tries + 1, status);
 
-			if (status.contains("Fail")) {
-				return null;
-			} else if (status.contains("True")) {
-				byte[] body = downloadFile(id);
+				if (!status.contains("True") && !status.contains("False")) {
+					throw new OCRException("Invalid job status: " + status);
+				} else if (status.contains("True")) {
+					break;
+				}
+				tries++;
+			} while (tries < MAX_TRIES);
 
-				return unpack(body).trim();
-			} else {
-				throw new OCRException("Invalid job status: " + status);
+			if (status.contains("False")) {
+				throw new OCRException("Не удалось обработать изображение");
 			}
+
+			byte[] body = downloadFile(id);
+			return unpack(body).trim();
 		} catch (IOException e) {
 			throw new OCRException(e);
 		}
