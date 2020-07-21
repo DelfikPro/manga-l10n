@@ -1,0 +1,36 @@
+apply plugin: 'java'
+
+subprojects {
+    apply plugin: 'java'
+
+    targetCompatibility = sourceCompatibility = '11'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    compileJava.options.encoding 'UTF-8'
+
+    sourceSets.main {
+        java.srcDir 'src'
+        resources.srcDir 'resources'
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding 'UTF-8'
+    }
+
+    dependencies {
+        annotationProcessor 'org.projectlombok:lombok:1.18.12'
+        compileOnly 'org.projectlombok:lombok:1.18.12'
+        implementation 'com.google.code.gson:gson:2.8.6'
+        implementation 'com.google.code.gson:gson:2.8.6'
+        implementation 'org.json:json:20200518'
+
+    }
+
+}
+
+
+
