@@ -18,7 +18,9 @@ subprojects {
         libraries = [
                 lombok: ['org.projectlombok:lombok:1.18.12'],
                 json: ['org.json:json:20200518'],
-                gson: ['com.google.code.gson:gson:2.8.6']
+                gson: ['com.google.code.gson:gson:2.8.6'],
+                vksdk: ['com.petersamokhin.vksdk:core-jvm:0.0.5',
+                        'com.petersamokhin.vksdk:http-client-jvm-okhttp:0.0.5']
         ]
     }
 
