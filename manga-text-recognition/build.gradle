@@ -1,4 +1,6 @@
 dependencies {
     implementation libraries.gson
     implementation project(":manga-core")
+
+    testImplementation libraries.commons_io
 }

@@ -25,17 +25,18 @@ public class OCRWebService implements OCRService {
 	private static final String URL = "http://www.ocrwebservice.com/restservices/processDocument?gettext=true&language=english,chinesesimplified,english";
 
 	private final Gson gson = new Gson();
-	private final List<WebServerUser> users;
+	private List<WebServerUser> users;
 
 	public OCRWebService() {
 		try (val bufferedReader = new BufferedReader(new FileReader(new File("tokens.json")))) {
-			users = gson.fromJson(
-					bufferedReader.lines().collect(Collectors.joining("\n")),
-					new TypeToken<List<WebServerUser>>() {}.getType());
-			users.forEach(System.out::println);
+			init(bufferedReader);
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
+	}
+
+	public OCRWebService(BufferedReader reader) {
+		init(reader);
 	}
 
 	@Override
@@ -105,4 +106,10 @@ public class OCRWebService implements OCRService {
 		return future;
 	}
 
+	private void init(BufferedReader reader) {
+		users = gson.fromJson(
+				reader.lines().collect(Collectors.joining("\n")),
+				new TypeToken<List<WebServerUser>>() {}.getType());
+		users.forEach(System.out::println);
+	}
 }
