@@ -1,4 +1,3 @@
 dependencies {
     implementation libraries.yaml
-    testImplementation libraries.junit
 }

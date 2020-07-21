@@ -9,6 +9,7 @@ import clepto.vk.model.Message;
 import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
 import mangal10n.ConfigUtils;
+import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
@@ -18,6 +19,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Stream;
@@ -66,25 +68,34 @@ public class App {
 			executor.submit(() -> {
 				Response response = new Request(size.get().url, Method.GET).execute(Proxy.NO_PROXY);
 				for (OCRService ocrService : ocrServices) {
-					ocrService.doRecognition(executor, response.getBody())
-							.thenAccept(str -> {
-								String sourceText = str.replaceAll("[\n\t\r]", " ");
-								StringBuilder builder = new StringBuilder(ocrService.getEmoji())
-										.append(' ')
-										.append(ocrService.getName())
-										.append(": ")
-										.append(sourceText);
+					final CompletableFuture<String> future = new CompletableFuture<>();
 
-								String encoded = URLEncoder.encode(sourceText, StandardCharsets.UTF_8).replace("+", "%20");
-								for (String translatorLink : translatorLinks) {
-									builder.append('\n')
-											.append(ocrService.getEmoji())
-											.append(' ')
-											.append(translatorLink)
-											.append(encoded);
-								}
-								bot.messages().send(peer, builder.toString());
-							});
+					executor.submit(() -> {
+						try {
+							future.complete(ocrService.doRecognition(response.getBody())
+									.replaceAll("[\n\t\r]", " "));
+						} catch (OCRException e) {
+							future.completeExceptionally(e);
+						}
+					});
+
+					future.thenAccept(sourceText -> {
+						StringBuilder builder = new StringBuilder(ocrService.getEmoji())
+								.append(' ')
+								.append(ocrService.getName())
+								.append(": ")
+								.append(sourceText);
+
+						String encoded = URLEncoder.encode(sourceText, StandardCharsets.UTF_8).replace("+", "%20");
+						for (String translatorLink : translatorLinks) {
+							builder.append('\n')
+									.append(ocrService.getEmoji())
+									.append(' ')
+									.append(translatorLink)
+									.append(encoded);
+						}
+						bot.messages().send(peer, builder.toString());
+					});
 				}
 			});
 		}

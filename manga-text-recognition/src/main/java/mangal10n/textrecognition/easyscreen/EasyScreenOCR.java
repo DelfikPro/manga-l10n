@@ -1,29 +1,21 @@
 package mangal10n.textrecognition.easyscreen;
 
-import clepto.net.Method;
-import clepto.net.Request;
-import clepto.net.Response;
+import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
+import okhttp3.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static java.net.Proxy.NO_PROXY;
-
 public class EasyScreenOCR implements OCRService {
+
+	private static final int MAX_TRIES = 5;
 
 	@Override
 	public String getName() {
@@ -36,87 +28,139 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	@Override
-	public CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image) {
-		CompletableFuture<String> future = new CompletableFuture<>();
+	public String doRecognition(byte[] image) {
+		try {
+			final String id = requestId();
 
-		executorService.submit(() -> {
-			try {
-				Request request = new Request("https://online.easyscreenocr.com/Home/GetNewId", Method.GET);
+			final String resultSendFile = sendFile(id, image);
+			System.out.println("[Okinawa] " + resultSendFile);
 
-				String id = new String(request.execute(NO_PROXY).getBody())
-						.replace("\"", "");
+			final String resultStartConvert = requestStartConvert(id);
+			System.out.println("[Okinawa] " + resultStartConvert);
 
-				MultiPartBodyPublisher publisher = new MultiPartBodyPublisher()
-						.addPart("\"Id\"", id)
-						.addPart("\"Index\"", "0")
-						.addPart("\"file\"", () -> new ByteArrayInputStream(image), "\"32.jpg\"", "image/jpeg");
+			int tries = 0;
+			String status;
+			do {
+				status = requestGetDownloadLink(id);
+				System.out.printf("[Okinawa] Performing attempt #%d: %s\n", tries + 1, status);
 
-//				ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//				publisher.build(stream);
-//				byte[] rawBody = stream.toByteArray();
-//				System.out.println(new String(rawBody));
-//				System.out.println("Created webkit form with boundary '" + publisher.getBoundary() + "'");
-//				System.out.println("Crafting request: content length is " + rawBody.length);
+				if (!status.contains("True") && !status.contains("False")) {
+					throw new OCRException("Invalid job status: " + status);
+				} else if (status.contains("True")) {
+					break;
+				}
+				tries++;
+			} while (tries < MAX_TRIES);
 
-				HttpRequest uploadRequest = HttpRequest.newBuilder()
-						.uri(URI.create("https://online.easyscreenocr.com/Home/Upload"))
-						.header("Content-Type", "multipart/form-data; boundary=" + publisher.getBoundary())
-						.header("x-requested-with", "XMLHttpRequest")
-						.timeout(Duration.ofMinutes(1))
-						.POST(publisher.buildForJavaNet())
-						.build();
-
-				HttpClient client = HttpClient.newHttpClient();
-				HttpResponse<String> uploadResponse = client.send(uploadRequest, HttpResponse.BodyHandlers.ofString());
-				System.out.println("[Okinawa] " + uploadResponse.body());
-
-				Response startResponse = new Request("https://online.easyscreenocr.com/Home/StartConvert", Method.GET)
-						.param("Id", id)
-						.param("SelectedLanguage", "1")
-						.execute(NO_PROXY);
-
-				System.out.println("[Okinawa] " + new String(startResponse.getBody()));
-
-				Request attempt = new Request("https://online.easyscreenocr.com/Home/GetDownloadLink", Method.GET);
-
-				attempt.param("Id", id);
-
-				AtomicReference<ScheduledFuture<?>> task = new AtomicReference<>();
-				int[] attemptId = {1};
-				task.set(executorService.scheduleWithFixedDelay(() -> {
-					try {
-						Response response = attempt.execute(NO_PROXY);
-						String status = new String(response.getBody());
-						System.out.println("[Okinawa] Performing attempt #" + attemptId[0]++ + ": " + status);
-						if (status.contains("Fail")) return;
-						if (status.contains("True")) {
-
-							Request download = new Request("https://online.easyscreenocr.com/UploadedImageForOCR/" + id + "/" + id + ".zip", Method.GET);
-							Response downloadResponse = download.execute(NO_PROXY);
-							byte[] body = downloadResponse.getBody();
-							ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(body));
-							ZipEntry entry = zip.getNextEntry();
-							byte[] buffer = new byte[(int) entry.getSize()];
-							int read = zip.read(buffer, 0, buffer.length);
-							if (read == 0) throw new IOException("Something went wrong");
-							future.complete(new String(buffer, StandardCharsets.UTF_8));
-							task.get().cancel(true);
-							return;
-						}
-
-						throw new IllegalStateException("Invalid job status: " + status);
-					} catch (Exception ex) {
-						future.completeExceptionally(ex);
-						task.get().cancel(true);
-					}
-				}, 1, 1000, TimeUnit.MILLISECONDS));
-			} catch (Exception ex) {
-				future.completeExceptionally(ex);
+			if (status.contains("False")) {
+				throw new OCRException("Не удалось обработать изображение");
 			}
-		});
 
-
-		return future;
+			byte[] body = downloadFile(id);
+			return unpack(body).trim();
+		} catch (IOException e) {
+			throw new OCRException(e);
+		}
 	}
 
+	private String requestId() throws IOException {
+		okhttp3.Request request = new okhttp3.Request.Builder()
+				.url("https://online.easyscreenocr.com/Home/GetNewId")
+				.build();
+
+		OkHttpClient client = new OkHttpClient.Builder()
+				.readTimeout(Duration.ofMinutes(1))
+				.build();
+		try (okhttp3.Response response = client.newCall(request).execute()) {
+			return Objects.requireNonNull(response.body()).string()
+					.replace("\"", "");
+		}
+	}
+
+	private String sendFile(String id, byte[] bytes) throws IOException {
+		MultipartBody multipartBody = new MultipartBody.Builder()
+				.setType(MultipartBody.FORM)
+				.addFormDataPart("Id", id)
+				.addFormDataPart("Index", "0")
+				.addFormDataPart("file", "32.jpg", RequestBody.create(bytes, MediaType.get("image/jpeg")))
+				.build();
+
+		okhttp3.Request request = new okhttp3.Request.Builder()
+				.url("https://online.easyscreenocr.com/Home/Upload")
+				.addHeader("x-requested-with", "XMLHttpRequest")
+				.post(multipartBody)
+				.build();
+
+		OkHttpClient client = new OkHttpClient.Builder()
+				.readTimeout(Duration.ofMinutes(1))
+				.build();
+		try (okhttp3.Response response = client.newCall(request).execute()) {
+			return Objects.requireNonNull(response.body()).string();
+		}
+	}
+
+	@SuppressWarnings("ConstantConditions")
+	private String requestStartConvert(String id) throws IOException {
+		final HttpUrl httpUrl = HttpUrl.parse("https://online.easyscreenocr.com/Home/StartConvert")
+				.newBuilder()
+				.addQueryParameter("Id", id)
+				.addQueryParameter("SelectedLanguage", "1")
+				.build();
+
+		okhttp3.Request request = new okhttp3.Request.Builder()
+				.url(httpUrl)
+				.build();
+
+		OkHttpClient client = new OkHttpClient.Builder()
+				.readTimeout(Duration.ofMinutes(1))
+				.build();
+		try (okhttp3.Response response = client.newCall(request).execute()) {
+			return Objects.requireNonNull(response.body()).string();
+		}
+	}
+
+	@SuppressWarnings("ConstantConditions")
+	private String requestGetDownloadLink(String id) throws IOException {
+		final HttpUrl httpUrl = HttpUrl.parse("https://online.easyscreenocr.com/Home/GetDownloadLink")
+				.newBuilder()
+				.addQueryParameter("Id", id)
+				.build();
+
+		okhttp3.Request request = new okhttp3.Request.Builder()
+				.url(httpUrl)
+				.build();
+
+		OkHttpClient client = new OkHttpClient.Builder()
+				.readTimeout(Duration.ofMinutes(1))
+				.build();
+		try (okhttp3.Response response = client.newCall(request).execute()) {
+			return Objects.requireNonNull(response.body()).string();
+		}
+	}
+
+	private byte[] downloadFile(String id) throws IOException {
+		okhttp3.Request request = new okhttp3.Request.Builder()
+				.url(MessageFormat.format("https://online.easyscreenocr.com/UploadedImageForOCR/{0}/{0}.zip", id))
+				.build();
+
+		OkHttpClient client = new OkHttpClient.Builder()
+				.readTimeout(Duration.ofMinutes(1))
+				.build();
+		try (okhttp3.Response response = client.newCall(request).execute()) {
+			return Objects.requireNonNull(response.body()).bytes();
+		}
+	}
+
+	private String unpack(byte[] bytes) throws IOException {
+		try (ZipInputStream zip = new ZipInputStream(new ByteArrayInputStream(bytes))) {
+			ZipEntry entry = zip.getNextEntry();
+			byte[] buffer = new byte[(int) entry.getSize()];
+			int read = zip.read(buffer, 0, buffer.length);
+			if (read == 0) {
+				throw new IOException("Something went wrong");
+			} else {
+				return new String(buffer, StandardCharsets.UTF_8);
+			}
+		}
+	}
 }
