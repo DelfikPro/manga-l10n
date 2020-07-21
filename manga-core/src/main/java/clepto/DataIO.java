@@ -29,6 +29,10 @@ public class DataIO {
 		return list;
 	}
 
+	/**
+	 * @deprecated использовать {@link mangal10n.ConfigUtils#readYamlConfigFromFile(java.lang.String)}
+	 */
+	@Deprecated
 	public static Map<String, String> readConfig(String path) {
 		Map<String, String> map = new HashMap<>();
 		List<String> read = read(path);

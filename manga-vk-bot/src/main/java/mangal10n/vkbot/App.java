@@ -1,6 +1,5 @@
 package mangal10n.vkbot;
 
-import clepto.DataIO;
 import clepto.net.Method;
 import clepto.net.Request;
 import clepto.net.Response;
@@ -9,6 +8,7 @@ import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
 import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
+import mangal10n.ConfigUtils;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
@@ -42,7 +42,7 @@ public class App {
 	public static void main(String[] args) {
 		System.out.println("Hello there, fellow traveler.");
 
-		Map<String, String> config = DataIO.readConfig("config.yml");
+		Map<String, String> config = ConfigUtils.readYamlConfigFromFile("config.yml");
 		if (config.isEmpty()) {
 			System.out.println("No configuration file found!");
 			return;

@@ -20,7 +20,9 @@ subprojects {
                 json  : ['org.json:json:20200518'],
                 gson  : ['com.google.code.gson:gson:2.8.6'],
                 vksdk : ['com.petersamokhin.vksdk:core-jvm:0.0.5',
-                         'com.petersamokhin.vksdk:http-client-jvm-okhttp:0.0.5']
+                         'com.petersamokhin.vksdk:http-client-jvm-okhttp:0.0.5'],
+                yaml  : ['org.yaml:snakeyaml:1.26'],
+                junit : ['junit:junit:4.12']
         ]
     }
 
