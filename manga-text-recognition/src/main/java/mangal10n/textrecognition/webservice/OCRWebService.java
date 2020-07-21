@@ -5,15 +5,15 @@ import com.google.gson.reflect.TypeToken;
 import lombok.val;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
+import okhttp3.*;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -54,15 +54,19 @@ public class OCRWebService implements OCRService {
 	public String doRecognition(byte[] image) {
 		try {
 			for (WebServerUser user : users) {
-				HttpURLConnection connection = createConnection(user, image);
+				Request request = new Request.Builder()
+						.url(URL)
+						.addHeader("Authorization", Credentials.basic(user.getUser(), user.getToken()))
+						.addHeader("Content-Type", "application/json")
+						.post(RequestBody.create(image))
+						.build();
 
-				try (val stream = connection.getOutputStream()) {
-					stream.write(image);
-					int httpCode = connection.getResponseCode();
-
+				OkHttpClient client = new OkHttpClient();
+				try (Response response1 = client.newCall(request).execute()) {
+					int httpCode = response1.code();
 					if (httpCode == HttpURLConnection.HTTP_OK) {
-						String responseString = readString(connection.getInputStream());
-						ResponseField response = gson.fromJson(responseString, ResponseField.class);
+						ResponseField response = gson.fromJson(Objects.requireNonNull(response1.body()).string(),
+								ResponseField.class);
 
 						return response.getOcrText().stream()
 								.map(list -> String.join("  ", list))
@@ -71,8 +75,6 @@ public class OCRWebService implements OCRService {
 					} else if (httpCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
 						System.out.println("OCR Error Message: Unauthorizied request");
 					}
-				} finally {
-					connection.disconnect();
 				}
 			}
 		} catch (IOException e) {
@@ -88,30 +90,4 @@ public class OCRWebService implements OCRService {
 				new TypeToken<List<WebServerUser>>() {}.getType());
 		users.forEach(System.out::println);
 	}
-
-	private HttpURLConnection createConnection(WebServerUser user, byte[] bytes) throws IOException {
-		HttpURLConnection connection = (HttpURLConnection) new URL(URL).openConnection();
-		connection.setDoOutput(true);
-		connection.setDoInput(true);
-		connection.setRequestMethod("POST");
-		connection.setRequestProperty("Authorization", "Basic " + Base64.getEncoder().encodeToString((user.getUser() + ":" + user.getToken()).getBytes()));
-		connection.setRequestProperty("Content-Type", "application/json");
-		connection.setRequestProperty("Content-Length", Integer.toString(bytes.length));
-
-		return connection;
-	}
-
-	private String readString(InputStream inputStream) throws IOException {
-		val responseStream = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
-
-		BufferedReader br = new BufferedReader(responseStream);
-		StringBuilder strBuff = new StringBuilder();
-		String s;
-		while ((s = br.readLine()) != null) {
-			strBuff.append(s);
-		}
-
-		return strBuff.toString();
-	}
-
 }
