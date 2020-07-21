@@ -3,6 +3,7 @@ package mangal10n.textrecognition.easyscreen;
 import clepto.net.Method;
 import clepto.net.Request;
 import clepto.net.Response;
+import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 
 import java.io.ByteArrayInputStream;
@@ -79,6 +80,35 @@ public class EasyScreenOCR implements OCRService {
 
 
 		return future;
+	}
+
+	@Override
+	public String doRecognition(byte[] image) {
+		try {
+			final String id = requestId();
+
+			final String resultSendFile = sendFile(id, image);
+			System.out.println("[Okinawa] " + resultSendFile);
+
+			final String resultStartConvert = requestStartConvert(id);
+			System.out.println("[Okinawa] " + resultStartConvert);
+
+			//FIXME повторяющаяся операция!
+			String status = requestGetDownloadLink(id);
+			System.out.println("[Okinawa] Performing attempt: " + status);
+
+			if (status.contains("Fail")) {
+				return null;
+			} else if (status.contains("True")) {
+				byte[] body = downloadFile(id);
+
+				return unpack(body).trim();
+			} else {
+				throw new OCRException("Invalid job status: " + status);
+			}
+		} catch (InterruptedException | IOException e) {
+			throw new OCRException(e);
+		}
 	}
 
 	private String requestId() {

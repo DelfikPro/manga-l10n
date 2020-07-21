@@ -6,10 +6,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
+import java.nio.charset.StandardCharsets;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class EasyScreenOCRTest {
 
@@ -22,29 +22,14 @@ public class EasyScreenOCRTest {
 
 	@Test
 	public void testSimpleText() throws IOException {
-		final String expectedValue = "就带她看尽世间繁华 给她山盟海誓。";
-		final CountDownLatch lock = new CountDownLatch(1);
+		final String expectedValue = IOUtils.resourceToString("/simple_text.txt", StandardCharsets.UTF_8)
+				.replaceAll("\r\n", "\n");
 
 		byte[] imageBytes = IOUtils.resourceToByteArray("/simple_text.jpg");
 		assertNotNull(imageBytes);
 
-		ocr.doRecognition(Executors.newSingleThreadScheduledExecutor(), imageBytes)
-				.exceptionally(throwable -> {
-					throwable.printStackTrace();
-					fail(throwable.getMessage());
-					lock.countDown();
-
-					return throwable.getMessage();
-				})
-				.thenAccept(string -> {
-					assertEquals(expectedValue, string);
-					lock.countDown();
-				});
-
-		try {
-			lock.await();
-		} catch (InterruptedException e) {
-			fail(e.getMessage());
-		}
+		String recognition = ocr.doRecognition(imageBytes);
+		assertNotNull(recognition);
+		assertEquals(expectedValue, recognition.replaceAll("\r\n", "\n"));
 	}
 }

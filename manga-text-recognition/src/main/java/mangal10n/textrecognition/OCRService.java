@@ -9,6 +9,10 @@ public interface OCRService {
 
 	String getEmoji();
 
+	@Deprecated
 	CompletableFuture<String> doRecognition(ScheduledExecutorService executorService, byte[] image);
 
+	default String doRecognition(byte[] image) {
+		return null;
+	}
 }
