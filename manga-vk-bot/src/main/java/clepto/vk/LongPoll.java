@@ -1,11 +1,11 @@
 package clepto.vk;
 
-import clepto.net.Method;
-import clepto.net.Request;
 import clepto.vk.groups.LongPollData;
 import clepto.vk.model.Message;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.HttpUrl;
+import okhttp3.Request;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,12 +50,17 @@ public class LongPoll extends VkModule implements Runnable {
 		log.info("VK LongPoll server started successfully.");
 		while (true) {
 
-			Request request = new Request((server.startsWith("http") ? "" : "https://") + server, Method.GET);
-			request.param("act", "a_check");
-			request.param("key", key);
-			request.param("ts", ts);
-			request.param("wait", "25");
-			request.param("mode", "2");
+			HttpUrl httpUrl = HttpUrl.parse((server.startsWith("http") ? "" : "https://") + server).newBuilder()
+					.addQueryParameter("act", "a_check")
+					.addQueryParameter("key", key)
+					.addQueryParameter("ts", ts)
+					.addQueryParameter("wait", "25")
+					.addQueryParameter("mode", "2")
+					.build();
+
+			Request request = new Request.Builder()
+					.url(httpUrl)
+					.build();
 
 			JSONObject response = execute(request, false);
 //			System.out.println(response);

@@ -1,9 +1,11 @@
 package clepto.vk;
 
-import clepto.net.Response;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
-import java.net.Proxy;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.Random;
 
 @Slf4j
@@ -15,13 +17,23 @@ public class Messages extends VkModule {
 		super(bot, "messages");
 	}
 
+	@SuppressWarnings("ConstantConditions")
 	public void send(int peer, String message) {
-		Response response = request("send")
-				.param("peer_id", String.valueOf(peer))
-				.param("random_id", String.valueOf(random.nextLong()))
-				.body("message", message).execute(Proxy.NO_PROXY);
-		log.debug(response.toString());
-		log.debug(new String(response.getBody()));
+		Properties params = new Properties();
+		params.put("peer_id", String.valueOf(peer));
+		params.put("random_id", String.valueOf(random.nextLong()));
+
+		Properties appendBody = new Properties();
+		appendBody.put("message", message);
+
+		Request request = request("send", params, appendBody);
+		OkHttpClient client = new OkHttpClient();
+		try (okhttp3.Response response = client.newCall(request).execute()) {
+			log.debug(response.toString());
+			log.debug(response.body().string());
+		} catch (IOException e) {
+			log.error("{}", e.getMessage(), e);
+		}
 	}
 
 }

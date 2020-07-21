@@ -6,6 +6,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import clepto.vk.VKBot;
 
+import java.util.Properties;
+
 @Slf4j
 public class Groups extends VkModule {
 
@@ -14,9 +16,10 @@ public class Groups extends VkModule {
 	}
 
 	public LongPollData getLongPollServer() {
-		JSONObject json = execute(request("getLongPollServer")
-				.param("group_id", getBot().getGroup())
-			   );
+		Properties params = new Properties();
+		params.put("group_id", getBot().getGroup());
+
+		JSONObject json = execute(request("getLongPollServer", params));
 
 		try {
 			return new LongPollData(
@@ -32,10 +35,13 @@ public class Groups extends VkModule {
 	}
 
 	public void setDescription(String description) {
-		execute(request("edit")
-						.param("group_id", getBot().getGroup())
-						.body("description", description)
-								 );
+		Properties params = new Properties();
+		params.put("group_id", getBot().getGroup());
+
+		Properties appendBody = new Properties();
+		appendBody.put("description", description);
+
+		execute(request("edit", params, appendBody));
 	}
 
 }
