@@ -38,7 +38,7 @@ public class VK {
 		String id = "";
 		String upload_url;
 
-		try{
+		try {
 			String server = VK.query("photos.getMessagesUploadServer");
 
 			JSONObject s = new JSONObject(server);
@@ -61,7 +61,7 @@ public class VK {
 			JSONArray arr = j.getJSONArray("response");
 			JSONObject g = arr.getJSONObject(0);
 			id = g.getString("id");
-		}catch (Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
@@ -71,7 +71,7 @@ public class VK {
 	public static String getUserName(int uid) {
 		String data = query("users.get", "user_id=" + uid);
 		String full_name;
-		try{
+		try {
 			JSONObject obj = new JSONObject(data);
 			JSONArray response = obj.getJSONArray("response");
 			JSONObject _data = response.getJSONObject(0);
@@ -80,7 +80,7 @@ public class VK {
 
 			full_name = first_name + " " + last_name;
 
-		}catch (JSONException e){
+		} catch (JSONException e) {
 			e.printStackTrace();
 			full_name = "";
 		}
@@ -88,29 +88,29 @@ public class VK {
 		return full_name;
 	}
 
-	public static int getID(String link){
+	public static int getID(String link) {
 		String data = query("utils.resolveScreenName", "screen_name=" + link);
-		try{
+		try {
 			JSONObject obj = new JSONObject(data);
 			JSONObject response = obj.getJSONObject("response");
 			return response.getInt("object_id");
-		} catch (JSONException e){
+		} catch (JSONException e) {
 			return -1;
 		}
 	}
-	
+
 	public static int getUserID(String arg) {
 		String data = query("users.get", "user_ids=" + arg);
-		try{
+		try {
 			JSONObject obj = new JSONObject(data);
 			JSONArray response = obj.getJSONArray("response");
 			JSONObject _data = response.getJSONObject(0);
 			return _data.getInt("uid");
-		} catch (JSONException e){
+		} catch (JSONException e) {
 			return -1;
 		}
 	}
-	
+
 	public static class MultipartUtility {
 
 		private final String boundary;
@@ -157,7 +157,7 @@ public class VK {
 			boolean var6 = true;
 
 			int var7;
-			while ((var7 = var4.read(var5)) != -1){
+			while ((var7 = var4.read(var5)) != -1) {
 				this.outputStream.write(var5, 0, var7);
 			}
 
@@ -178,13 +178,13 @@ public class VK {
 			this.writer.append("--" + this.boundary + "--").append("\r\n");
 			this.writer.close();
 			int var2 = this.httpConn.getResponseCode();
-			if(var2 != 200){
+			if (var2 != 200) {
 				throw new IOException("Server returned non-OK status: " + var2);
-			}else{
+			} else {
 				BufferedReader var3 = new BufferedReader(new InputStreamReader(this.httpConn.getInputStream()));
 				String var4 = null;
 
-				while ((var4 = var3.readLine()) != null){
+				while ((var4 = var3.readLine()) != null) {
 					var1.add(var4);
 				}
 
@@ -198,16 +198,16 @@ public class VK {
 	public static String post_upload(String var0, File var1) {
 		String var2 = "";
 
-		try{
+		try {
 			MultipartUtility var3 = new MultipartUtility(var0, "utf-8");
 			var3.addFilePart("file", var1);
 			List var4 = var3.finish();
 
 			String var6;
-			for (Iterator var5 = var4.iterator(); var5.hasNext(); var2 = var2 + var6){
+			for (Iterator var5 = var4.iterator(); var5.hasNext(); var2 = var2 + var6) {
 				var6 = (String) var5.next();
 			}
-		}catch (IOException var7){
+		} catch (IOException var7) {
 			var2 = "upload error";
 			var7.printStackTrace();
 		}
@@ -219,8 +219,8 @@ public class VK {
 		return get(server + "?" + args);
 	}
 
-	public static String get(String server){
-		try{
+	public static String get(String server) {
+		try {
 			URL url = new URL(server);
 			URLConnection connection = url.openConnection();
 			connection.connect();
@@ -228,7 +228,7 @@ public class VK {
 			String result = reader.readLine();
 			reader.close();
 			return result;
-		}catch (Exception ex){
+		} catch (Exception ex) {
 			ex.printStackTrace();
 			return "fail";
 		}

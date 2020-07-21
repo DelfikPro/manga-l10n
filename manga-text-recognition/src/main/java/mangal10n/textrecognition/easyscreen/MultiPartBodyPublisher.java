@@ -1,4 +1,5 @@
 package mangal10n.textrecognition.easyscreen;
+
 import lombok.Getter;
 
 import java.io.IOException;

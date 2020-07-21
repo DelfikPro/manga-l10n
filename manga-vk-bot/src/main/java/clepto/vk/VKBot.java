@@ -2,7 +2,6 @@ package clepto.vk;
 
 import clepto.vk.groups.Groups;
 import clepto.vk.model.Attachment;
-import clepto.vk.model.Message;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.Data;

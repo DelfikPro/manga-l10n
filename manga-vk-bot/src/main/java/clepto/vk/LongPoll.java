@@ -40,7 +40,7 @@ public class LongPoll extends VkModule implements Runnable {
 		server = data.getServer();
 		ts = data.getTs();
 	}
-	
+
 	private volatile byte failed = 0;
 
 	public void run() {
@@ -77,13 +77,13 @@ public class LongPoll extends VkModule implements Runnable {
 
 
 	private void processEvent(JSONArray array) {
-		for (int i = 0; i <  array.length(); ++i) {
+		for (int i = 0; i < array.length(); ++i) {
 			try {
 				JSONObject arrayItem = array.getJSONObject(i);
 				String eventType = arrayItem.getString("type");
 				JSONObject object = arrayItem.getJSONObject("object");
-				
-				
+
+
 				switch (eventType) {
 					case "message_new":
 						String message1 = object.getJSONObject("message").toString();
@@ -95,7 +95,7 @@ public class LongPoll extends VkModule implements Runnable {
 						int peer_id = message.peer_id;
 
 						lastPeer = peer_id;
-						
+
 						text = text.replaceAll("\\[.*]", "");
 //						String message = MessageHandler.handle(text, from_id, peer_id);
 						if (handler != null) {
