@@ -2,7 +2,6 @@ dependencies {
     implementation project(":manga-core")
     implementation project(":manga-image-processing")
     implementation project(":manga-text-recognition")
-    implementation libraries.json
     implementation libraries.gson
     implementation libraries.vksdk
     implementation libraries.logback

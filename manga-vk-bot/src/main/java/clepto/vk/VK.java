@@ -1,8 +1,7 @@
 package clepto.vk;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,26 +40,25 @@ public class VK {
 		try {
 			String server = VK.query("photos.getMessagesUploadServer");
 
-			JSONObject s = new JSONObject(server);
-			upload_url = s.getJSONObject("response").getString("upload_url");
+			JsonObject s = GlobalBeans.getGson().fromJson(server, JsonObject.class);
+			upload_url = s.getAsJsonObject("response").get("upload_url").getAsString();
 
 			String res = post_upload(upload_url, f);
 
+			JsonObject j = GlobalBeans.getGson().fromJson(res, JsonObject.class);
 
-			JSONObject j = new JSONObject(res);
-
-			int _server = j.getInt("server");
-			String _photo = j.getString("photo");
-			String _hash = j.getString("hash");
+			int _server = j.get("server").getAsInt();
+			String _photo = j.get("photo").getAsString();
+			String _hash = j.get("hash").getAsString();
 
 			String params = "server=" + _server + "&photo=" + _photo + "&hash=" + _hash;
 
 			res = VK.query("photos.saveMessagesPhoto", params);
 
-			j = new JSONObject(res);
-			JSONArray arr = j.getJSONArray("response");
-			JSONObject g = arr.getJSONObject(0);
-			id = g.getString("id");
+			j = GlobalBeans.getGson().fromJson(res, JsonObject.class);
+			JsonArray arr = j.getAsJsonArray("response");
+			JsonObject g = arr.get(0).getAsJsonObject();
+			id = g.get("id").getAsString();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -72,15 +70,15 @@ public class VK {
 		String data = query("users.get", "user_id=" + uid);
 		String full_name;
 		try {
-			JSONObject obj = new JSONObject(data);
-			JSONArray response = obj.getJSONArray("response");
-			JSONObject _data = response.getJSONObject(0);
-			String first_name = _data.getString("first_name");
-			String last_name = _data.getString("last_name");
+			JsonObject obj = GlobalBeans.getGson().fromJson(data, JsonObject.class);
+			JsonArray response = obj.getAsJsonArray("response");
+			JsonObject _data = response.get(0).getAsJsonObject();
+			String first_name = _data.get("first_name").getAsString();
+			String last_name = _data.get("last_name").getAsString();
 
 			full_name = first_name + " " + last_name;
 
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			full_name = "";
 		}
@@ -91,10 +89,10 @@ public class VK {
 	public static int getID(String link) {
 		String data = query("utils.resolveScreenName", "screen_name=" + link);
 		try {
-			JSONObject obj = new JSONObject(data);
-			JSONObject response = obj.getJSONObject("response");
-			return response.getInt("object_id");
-		} catch (JSONException e) {
+			JsonObject obj = GlobalBeans.getGson().fromJson(data, JsonObject.class);
+			JsonObject response = obj.getAsJsonObject("response");
+			return response.get("object_id").getAsInt();
+		} catch (Exception e) {
 			return -1;
 		}
 	}
@@ -102,15 +100,16 @@ public class VK {
 	public static int getUserID(String arg) {
 		String data = query("users.get", "user_ids=" + arg);
 		try {
-			JSONObject obj = new JSONObject(data);
-			JSONArray response = obj.getJSONArray("response");
-			JSONObject _data = response.getJSONObject(0);
-			return _data.getInt("uid");
-		} catch (JSONException e) {
+			JsonObject obj = GlobalBeans.getGson().fromJson(data, JsonObject.class);
+			JsonArray response = obj.getAsJsonArray("response");
+			JsonObject _data = response.get(0).getAsJsonObject();
+			return _data.get("uid").getAsInt();
+		} catch (Exception e) {
 			return -1;
 		}
 	}
 
+	//FIXME убрать
 	public static class MultipartUtility {
 
 		private final String boundary;
