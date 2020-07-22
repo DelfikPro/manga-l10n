@@ -30,16 +30,8 @@ public class OCRWebService implements OCRService {
 	private final Gson gson = new Gson();
 	private List<WebServerUser> users;
 
-	public OCRWebService() {
-		try (val bufferedReader = new BufferedReader(new FileReader(new File("tokens.json")))) {
-			init(bufferedReader);
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-	}
-
-	public OCRWebService(BufferedReader reader) {
-		init(reader);
+	public OCRWebService(List<WebServerUser> users) {
+		this.users = users;
 	}
 
 	@Override
