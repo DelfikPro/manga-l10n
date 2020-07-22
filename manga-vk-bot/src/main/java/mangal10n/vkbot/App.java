@@ -76,7 +76,9 @@ public class App {
 					executor.submit(() -> {
 						try {
 							future.complete(ocrService.doRecognition(response.getBody(), Language.valueOf(message.body))
-									.replaceAll("[\n\t\r]", " "));
+									.replaceAll("[\n\t\r]", " ")
+									.replaceAll("\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]", "[ССЫЛКИ НЕ ПЕРЕВОДИМ]")
+							);
 						} catch (OCRException e) {
 							future.completeExceptionally(e);
 						}
