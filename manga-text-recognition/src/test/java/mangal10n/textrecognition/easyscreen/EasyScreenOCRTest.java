@@ -1,5 +1,6 @@
 package mangal10n.textrecognition.easyscreen;
 
+import mangal10n.textrecognition.Language;
 import mangal10n.textrecognition.OCRService;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -26,7 +27,7 @@ public class EasyScreenOCRTest {
 				.replaceAll("\r\n", "\n");
 		final byte[] imageBytes = IOUtils.resourceToByteArray("/simple_text.jpg");
 
-		String recognition = ocr.doRecognition(imageBytes);
+		String recognition = ocr.doRecognition(imageBytes, Language.CHINESE_SIMPLIFIED);
 		assertNotNull(recognition);
 		assertEquals(expectedValue, recognition.replaceAll("\r\n", "\n"));
 	}
