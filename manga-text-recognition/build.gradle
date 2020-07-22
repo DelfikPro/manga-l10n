@@ -1,4 +1,8 @@
 dependencies {
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation libraries.gson
+    implementation libraries.okhttp
+    implementation libraries.logback
     implementation project(":manga-core")
+
+    testImplementation libraries.commons_io
 }

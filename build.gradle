@@ -1,35 +1,41 @@
-apply plugin: 'java'
-
 subprojects {
     apply plugin: 'java'
 
-    targetCompatibility = sourceCompatibility = '11'
+    project.group = 'manga-l10n'
+    project.version = '1.0-SNAPSHOT'
+
+    compileJava {
+        sourceCompatibility = targetCompatibility = 11
+        options.encoding = 'UTF-8'
+    }
 
     repositories {
         mavenLocal()
         mavenCentral()
     }
 
-    compileJava.options.encoding 'UTF-8'
-
-    sourceSets.main {
-        java.srcDir 'src'
-        resources.srcDir 'resources'
-    }
-
-    tasks.withType(JavaCompile) {
-        options.encoding 'UTF-8'
+    ext {
+        libraries = [
+                lombok    : ['org.projectlombok:lombok:1.18.12'],
+                json      : ['org.json:json:20200518'],
+                gson      : ['com.google.code.gson:gson:2.8.6'],
+                yaml      : ['org.yaml:snakeyaml:1.26'],
+                commons_io: ['commons-io:commons-io:2.7'],
+                okhttp    : ['com.squareup.okhttp3:okhttp:4.8.0'],
+                slf4j     : ['org.slf4j:slf4j-api:1.7.30'],
+                logback   : ['ch.qos.logback:logback-core:1.2.3',
+                             'ch.qos.logback:logback-classic:1.2.3'],
+                junit     : ['junit:junit:4.12']
+        ]
     }
 
     dependencies {
-        annotationProcessor 'org.projectlombok:lombok:1.18.12'
-        compileOnly 'org.projectlombok:lombok:1.18.12'
-        implementation 'com.google.code.gson:gson:2.8.6'
-        implementation 'com.google.code.gson:gson:2.8.6'
-        implementation 'org.json:json:20200518'
+        annotationProcessor libraries.lombok
+        compileOnly libraries.lombok
+        implementation libraries.slf4j
 
+        testImplementation libraries.junit
     }
-
 }
 
 
