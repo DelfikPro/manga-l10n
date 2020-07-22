@@ -6,5 +6,5 @@ public interface OCRService {
 
 	String getEmoji();
 
-	String doRecognition(byte[] image);
+	String doRecognition(byte[] image, Language language);
 }

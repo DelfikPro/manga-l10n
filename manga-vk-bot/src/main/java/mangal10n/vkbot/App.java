@@ -10,6 +10,7 @@ import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.ConfigUtils;
+import mangal10n.textrecognition.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
@@ -74,7 +75,7 @@ public class App {
 
 					executor.submit(() -> {
 						try {
-							future.complete(ocrService.doRecognition(response.getBody())
+							future.complete(ocrService.doRecognition(response.getBody(), Language.valueOf(message.body))
 									.replaceAll("[\n\t\r]", " "));
 						} catch (OCRException e) {
 							future.completeExceptionally(e);

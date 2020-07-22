@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import mangal10n.textrecognition.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import okhttp3.*;
@@ -13,7 +14,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -25,7 +28,7 @@ import java.util.stream.Collectors;
 public class OCRWebService implements OCRService {
 
 	// Service: http://www.ocrwebservice.com/
-	private static final String URL = "http://www.ocrwebservice.com/restservices/processDocument?gettext=true&language=english,chinesesimplified,english";
+	private static final String URL = "http://www.ocrwebservice.com/restservices/processDocument?gettext=true&language=LANG";
 
 	private final Gson gson = new Gson();
 	private List<WebServerUser> users;
@@ -53,11 +56,11 @@ public class OCRWebService implements OCRService {
 	}
 
 	@Override
-	public String doRecognition(byte[] image) {
+	public String doRecognition(byte[] image, Language language) {
 		try {
 			for (WebServerUser user : users) {
 				Request request = new Request.Builder()
-						.url(URL)
+						.url(URL.replace("LANG", language.name().replace("_", "").toLowerCase() + ",english"))
 						.addHeader("Authorization", Credentials.basic(user.getUser(), user.getToken()))
 						.addHeader("Content-Type", "application/json")
 						.post(RequestBody.create(image))
@@ -90,6 +93,5 @@ public class OCRWebService implements OCRService {
 		users = gson.fromJson(
 				reader.lines().collect(Collectors.joining("\n")),
 				new TypeToken<List<WebServerUser>>() {}.getType());
-		users.forEach(System.out::println);
 	}
 }

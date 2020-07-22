@@ -1,6 +1,7 @@
 package mangal10n.textrecognition.easyscreen;
 
 import lombok.extern.slf4j.Slf4j;
+import mangal10n.textrecognition.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import okhttp3.*;
@@ -10,6 +11,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -18,6 +21,12 @@ import java.util.zip.ZipInputStream;
 public class EasyScreenOCR implements OCRService {
 
 	private static final int MAX_TRIES = 5;
+	private Map<Language, Integer> langs = new HashMap<>(){{
+		put(Language.ENGLISH, 0);
+		put(Language.CHINESE_SIMPLIFIED, 1);
+		put(Language.CHINESE_TRADITIONAL, 1);
+		put(Language.JAPANESE, 2);
+	}};
 
 	@Override
 	public String getName() {
@@ -30,14 +39,14 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	@Override
-	public String doRecognition(byte[] image) {
+	public String doRecognition(byte[] image, Language language) {
 		try {
 			final String id = requestId();
 
 			final String resultSendFile = sendFile(id, image);
 			log.debug("[Okinawa] {}", resultSendFile);
 
-			final String resultStartConvert = requestStartConvert(id);
+			final String resultStartConvert = requestStartConvert(id, language);
 			log.debug("[Okinawa] {}", resultStartConvert);
 
 			int tries = 0;
@@ -102,11 +111,11 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	@SuppressWarnings("ConstantConditions")
-	private String requestStartConvert(String id) throws IOException {
+	private String requestStartConvert(String id, Language language) throws IOException {
 		final HttpUrl httpUrl = HttpUrl.parse("https://online.easyscreenocr.com/Home/StartConvert")
 				.newBuilder()
 				.addQueryParameter("Id", id)
-				.addQueryParameter("SelectedLanguage", "1")
+				.addQueryParameter("SelectedLanguage", String.valueOf(langs.get(language)))
 				.build();
 
 		okhttp3.Request request = new okhttp3.Request.Builder()
