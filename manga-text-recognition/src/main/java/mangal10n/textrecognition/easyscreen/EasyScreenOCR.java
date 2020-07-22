@@ -2,6 +2,8 @@ package mangal10n.textrecognition.easyscreen;
 
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.browser.Browser;
+import mangal10n.browser.Request;
+import mangal10n.browser.Response;
 import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
@@ -66,18 +68,18 @@ public class EasyScreenOCR implements OCRService {
 
 	private String requestId() throws IOException {
 		Browser browser = new OkHttpBrowser();
-		mangal10n.browser.Request request = browser.requestBuilder()
+		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/GetNewId")
 				.build();
 
-		try (mangal10n.browser.Response response = request.execute()) {
+		try (Response response = request.execute()) {
 			return response.body().string().replace("\"", "");
 		}
 	}
 
 	private String sendFile(String id, byte[] bytes) throws IOException {
 		Browser browser = new OkHttpBrowser();
-		mangal10n.browser.Request request = browser.requestBuilder()
+		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/Upload")
 				.addHeader("x-requested-with", "XMLHttpRequest")
 				.addMultipartData("Id", id)
@@ -85,7 +87,7 @@ public class EasyScreenOCR implements OCRService {
 				.addMultipartData("file", "32.jpg", "image/jpeg", bytes)
 				.build();
 
-		try (mangal10n.browser.Response response = request.execute()) {
+		try (Response response = request.execute()) {
 			return response.body().string();
 		}
 	}
@@ -98,31 +100,31 @@ public class EasyScreenOCR implements OCRService {
 				.addQueryParameter("SelectedLanguage", "1")
 				.build();
 
-		try (mangal10n.browser.Response response = request1.execute()) {
+		try (Response response = request1.execute()) {
 			return response.body().string();
 		}
 	}
 
 	private String requestGetDownloadLink(String id) throws IOException {
 		Browser browser = new OkHttpBrowser();
-		mangal10n.browser.Request request1 = browser.requestBuilder()
+		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/GetDownloadLink")
 				.addQueryParameter("Id", id)
 				.build();
 
-		try (mangal10n.browser.Response response = request1.execute()) {
+		try (Response response = request.execute()) {
 			return response.body().string();
 		}
 	}
 
 	private byte[] downloadFile(String id) throws IOException {
 		Browser browser = new OkHttpBrowser();
-		mangal10n.browser.Request request1 = browser.requestBuilder()
+		Request request = browser.requestBuilder()
 				.url(MessageFormat.format("https://online.easyscreenocr.com/UploadedImageForOCR/{0}/{0}.zip", id))
 				.build();
 
-		try (mangal10n.browser.Response response1 = request1.execute()) {
-			return response1.body().bytes();
+		try (Response response = request.execute()) {
+			return response.body().bytes();
 		}
 	}
 
