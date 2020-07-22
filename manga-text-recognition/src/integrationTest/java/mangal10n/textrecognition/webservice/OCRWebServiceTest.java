@@ -5,22 +5,31 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class OCRWebServiceTest {
 
 	private OCRService ocr;
 
 	@Before
-	public void setUp() throws IOException {
-		InputStream inputStream = IOUtils.resourceToURL("/tokens.json").openStream();
-		ocr = new OCRWebService(new BufferedReader(new InputStreamReader(inputStream)));
+	public void setUp() {
+		final String ocrLogin = System.getProperty("ocrLogin");
+		final String ocrToken = System.getProperty("ocrToken");
+		System.out.printf("Login: %s | Token: %s", ocrLogin, ocrToken);
+
+		List<WebServerUser> users;
+		if (isBlank(ocrLogin) || isBlank(ocrToken)) {
+			users = Collections.emptyList();
+		} else {
+			users = Collections.singletonList(new WebServerUser(ocrLogin, ocrToken));
+		}
+		ocr = new OCRWebService(users);
 	}
 
 	@Test
@@ -32,5 +41,9 @@ public class OCRWebServiceTest {
 		String recognition = ocr.doRecognition(imageBytes);
 		assertNotNull(recognition);
 		assertEquals(expectedValue, recognition.replaceAll("\r\n", "\n"));
+	}
+
+	private boolean isBlank(String string) {
+		return string == null || string.equals("");
 	}
 }

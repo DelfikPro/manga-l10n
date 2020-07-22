@@ -8,20 +8,28 @@ import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
 import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import lombok.val;
 import mangal10n.ConfigUtils;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
+import mangal10n.textrecognition.webservice.WebServerUser;
 
+import java.io.*;
 import java.net.Proxy;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -36,13 +44,12 @@ public class App {
 			"https://translate.systran.net/translationTools/text?source=zh&target=en&input="
 	};
 
-	private static final OCRService[] ocrServices = {
-			new OCRWebService(),
-			new EasyScreenOCR(),
-	};
+	private static OCRService[] ocrServices;
 
 	public static void main(String[] args) {
 		System.out.println("Hello there, fellow traveler.");
+
+		initOcr();
 
 		Map<String, String> config = ConfigUtils.readYamlConfigFromFile("config.yml");
 		if (config.isEmpty()) {
@@ -102,4 +109,21 @@ public class App {
 		return null;
 	}
 
+	private static void initOcr() {
+		List<WebServerUser> users;
+		try (val bufferedReader = new BufferedReader(new FileReader(new File("tokens.json")))) {
+			users = new Gson().fromJson(
+					bufferedReader.lines().collect(Collectors.joining("\n")),
+					new TypeToken<List<WebServerUser>>() {}.getType());
+			users.forEach(System.out::println);
+		} catch (IOException e) {
+			e.printStackTrace();
+			users = Collections.emptyList();
+		}
+
+		//TODO костыльно как-то...
+		ocrServices = new OCRService[2];
+		ocrServices[0] = new OCRWebService(users);
+		ocrServices[1] = new EasyScreenOCR();
+	}
 }
