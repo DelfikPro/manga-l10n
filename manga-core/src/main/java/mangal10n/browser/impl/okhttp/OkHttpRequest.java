@@ -8,6 +8,7 @@ import mangal10n.browser.impl.BrowserException;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Objects;
 
@@ -36,9 +37,12 @@ public class OkHttpRequest implements Request {
 	@RequiredArgsConstructor
 	public static class OkHttpRequestBuilder implements Request.Builder {
 
+		private static final byte[] EMPTY_POST_DATA = new byte[0];
 		private final okhttp3.Request.Builder originRequestBuilder;
 		private HttpUrl.Builder okhttpUrlBuilder;
 		private MultipartBody.Builder multipartBodyBuilder;
+		private boolean isGetRequest = true; // false == POST
+		private byte[] postData;
 
 		@Override
 		public Builder url(String url) {
@@ -75,12 +79,37 @@ public class OkHttpRequest implements Request {
 		}
 
 		@Override
+		public Builder get() {
+			isGetRequest = true;
+			return this;
+		}
+
+		@Override
+		public Builder post() {
+			return post(EMPTY_POST_DATA);
+		}
+
+		@Override
+		public Builder post(String string) {
+			return post(string.getBytes(StandardCharsets.UTF_8));
+		}
+
+		@Override
+		public Builder post(byte[] bytes) {
+			isGetRequest = false;
+			postData = bytes;
+			return this;
+		}
+
+		@Override
 		public Request build() {
 			originRequestBuilder.url(okhttpUrlBuilder.build());
 
 			if (multipartBodyBuilder != null) {
 				MultipartBody multipartBody = multipartBodyBuilder.build();
 				originRequestBuilder.post(multipartBody);
+			} else if (!isGetRequest) {
+				originRequestBuilder.post(RequestBody.create(postData));
 			}
 
 			return new OkHttpRequest(originRequestBuilder.build());

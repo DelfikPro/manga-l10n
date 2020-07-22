@@ -1,4 +1,7 @@
 dependencies {
     implementation libraries.yaml
     implementation libraries.okhttp
+
+    integrationTestImplementation libraries.gson
+    integrationTestImplementation libraries.commons_io
 }

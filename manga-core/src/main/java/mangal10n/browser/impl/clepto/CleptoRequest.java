@@ -8,6 +8,7 @@ import mangal10n.browser.Response;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,10 +26,13 @@ public class CleptoRequest implements Request {
 
 	public static class CleptoRequestBuilder implements Request.Builder {
 
+		private static final byte[] EMPTY_POST_DATA = new byte[0];
 		private final Map<String, String> headers = new HashMap<>();
 		private final Map<String, String> urlParams = new HashMap<>();
 		private String url;
 		private MultiPartBodyPublisher multipartBody;
+		private boolean isGetRequest = true; // false == POST
+		private byte[] postData;
 
 		@Override
 		public Builder url(String url) {
@@ -65,6 +69,29 @@ public class CleptoRequest implements Request {
 		}
 
 		@Override
+		public Builder get() {
+			isGetRequest = true;
+			return this;
+		}
+
+		@Override
+		public Builder post() {
+			return post(EMPTY_POST_DATA);
+		}
+
+		@Override
+		public Builder post(String string) {
+			return post(string.getBytes(StandardCharsets.UTF_8));
+		}
+
+		@Override
+		public Builder post(byte[] bytes) {
+			isGetRequest = false;
+			postData = bytes;
+			return this;
+		}
+
+		@Override
 		public Request build() {
 			if (multipartBody != null) {
 				HttpRequest.Builder builder = HttpRequest.newBuilder()
@@ -72,9 +99,17 @@ public class CleptoRequest implements Request {
 				headers.forEach(builder::header);
 				builder.POST(multipartBody.buildForJavaNet());
 				return new JavaNetRequest(builder);
+			} else if (!isGetRequest) {
+				clepto.net.Request request = new clepto.net.Request(url, Method.POST);
+				urlParams.forEach(request::param);
+				headers.forEach(request::header);
+				request.body(postData);
+
+				return new CleptoRequest(request);
 			} else {
 				clepto.net.Request request = new clepto.net.Request(url, Method.GET);
 				urlParams.forEach(request::param);
+				headers.forEach(request::header);
 
 				return new CleptoRequest(request);
 			}

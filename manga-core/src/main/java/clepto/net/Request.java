@@ -34,6 +34,9 @@ public class Request {
 			con.setInstanceFollowRedirects(false);
 			con.setRequestMethod(method.name());
 			//			for (Map.Entry<String, String> stringStringEntry : headers.entrySet()) System.out.println(stringStringEntry);
+			if (!headers.containsKey("Content-Type")) {
+				headers.put("Content-Type", "application/octet-stream");
+			}
 			headers.forEach(con::setRequestProperty);
 			if (!cookies.isEmpty()) {
 				StringBuilder b = new StringBuilder();

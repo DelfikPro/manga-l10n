@@ -16,6 +16,14 @@ public interface Request {
 
 		Builder addMultipartData(String name, String filename, String contentType, byte[] rawContent);
 
+		Builder get();
+
+		Builder post();
+
+		Builder post(String string);
+
+		Builder post(byte[] bytes);
+
 		Request build();
 	}
 }
