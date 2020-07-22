@@ -1,9 +1,8 @@
 package clepto.vk.groups;
 
 import clepto.vk.VkModule;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONException;
-import org.json.JSONObject;
 import clepto.vk.VKBot;
 
 @Slf4j
@@ -14,17 +13,17 @@ public class Groups extends VkModule {
 	}
 
 	public LongPollData getLongPollServer() {
-		JSONObject json = execute(request("getLongPollServer")
+		JsonObject json = execute(request("getLongPollServer")
 				.param("group_id", getBot().getGroup())
 			   );
 
 		try {
 			return new LongPollData(
-					json.getString("key"),
-					json.getString("server"),
-					json.getString("ts")
+					json.get("key").getAsString(),
+					json.get("server").getAsString(),
+					json.get("ts").getAsString()
 			);
-		} catch (JSONException ex) {
+		} catch (Exception ex) {
 			log.debug(json.toString());
 			throw ex;
 		}

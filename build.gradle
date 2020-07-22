@@ -46,7 +46,6 @@ subprojects {
     ext {
         libraries = [
                 lombok    : ['org.projectlombok:lombok:1.18.12'],
-                json      : ['org.json:json:20200518'],
                 gson      : ['com.google.code.gson:gson:2.8.6'],
                 yaml      : ['org.yaml:snakeyaml:1.26'],
                 commons_io: ['commons-io:commons-io:2.7'],
