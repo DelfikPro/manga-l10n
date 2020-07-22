@@ -1,4 +1,4 @@
-package mangal10n.browser.impl.okhttp;
+package mangal10n.browser.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
