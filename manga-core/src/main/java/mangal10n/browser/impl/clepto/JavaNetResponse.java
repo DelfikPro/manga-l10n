@@ -12,6 +12,11 @@ public class JavaNetResponse implements Response {
 	private final HttpResponse<String> originResponse;
 
 	@Override
+	public int code() {
+		return originResponse.statusCode();
+	}
+
+	@Override
 	public Body body() {
 		return new JavaNetResponseBody(originResponse);
 	}

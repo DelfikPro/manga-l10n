@@ -4,6 +4,8 @@ import java.io.Closeable;
 
 public interface Response extends Closeable {
 
+	int code();
+
 	Body body();
 
 	interface Body {

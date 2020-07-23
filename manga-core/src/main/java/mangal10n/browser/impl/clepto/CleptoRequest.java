@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +66,13 @@ public class CleptoRequest implements Request {
 			prepareMultipart();
 
 			multipartBody.addPart(name, () -> new ByteArrayInputStream(rawContent), filename, contentType);
+			return this;
+		}
+
+		@Override
+		public Builder basicAuth(String user, String password) {
+			final String authData = Base64.getEncoder().encodeToString((user + ":" + password).getBytes());
+			addHeader("Authorization", "Basic " + authData);
 			return this;
 		}
 

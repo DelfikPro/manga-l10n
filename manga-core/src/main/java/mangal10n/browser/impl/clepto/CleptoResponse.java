@@ -1,14 +1,20 @@
 package mangal10n.browser.impl.clepto;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import mangal10n.browser.Response;
 
 import java.nio.charset.StandardCharsets;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CleptoResponse implements Response {
 
 	private final clepto.net.Response originResponse;
+
+	@Override
+	public int code() {
+		return originResponse.getCode();
+	}
 
 	@Override
 	public Body body() {

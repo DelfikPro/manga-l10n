@@ -11,6 +11,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.MessageFormat;
 
 import static org.junit.Assert.*;
 
@@ -152,6 +153,37 @@ public abstract class AbstractBrowserTest {
 
 			JsonObject headers = jsonObject.getAsJsonObject("headers");
 			assertTrue(headers.get("Content-Type").getAsString().startsWith("multipart/form-data; boundary="));
+		}
+	}
+
+	@Test
+	public void testBasicAuth() throws IOException {
+		final String user = "some_user";
+		final String password = "!s3cReT";
+
+		final Request request = browser.requestBuilder()
+				.url(MessageFormat.format("https://httpbin.org/basic-auth/{0}/{1}", user, password))
+				.basicAuth(user, password)
+				.build();
+
+		try (Response response = request.execute()) {
+			JsonObject jsonObject = gson.fromJson(response.body().string(), JsonObject.class);
+//			System.out.println(jsonObject.toString());
+
+			assertTrue(jsonObject.get("authenticated").getAsBoolean());
+		}
+	}
+
+	@Test
+	public void testHttpStatusCode() throws IOException {
+		for (int code : new int[]{ 200, 500 }) {
+			final Request request = browser.requestBuilder()
+					.url("https://httpbin.org/status/" + code)
+					.build();
+
+			try (Response response = request.execute()) {
+				assertEquals(code, response.code());
+			}
 		}
 	}
 

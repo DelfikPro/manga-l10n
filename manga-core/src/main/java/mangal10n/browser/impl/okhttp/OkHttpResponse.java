@@ -1,15 +1,21 @@
 package mangal10n.browser.impl.okhttp;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import mangal10n.browser.Response;
 import mangal10n.browser.impl.BrowserException;
 
 import java.io.IOException;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OkHttpResponse implements Response {
 
 	private final okhttp3.Response originResponse;
+
+	@Override
+	public int code() {
+		return originResponse.code();
+	}
 
 	@Override
 	public Body body() {

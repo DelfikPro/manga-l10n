@@ -79,6 +79,12 @@ public class OkHttpRequest implements Request {
 		}
 
 		@Override
+		public Builder basicAuth(String user, String password) {
+			addHeader("Authorization", Credentials.basic(user, password));
+			return this;
+		}
+
+		@Override
 		public Builder get() {
 			isGetRequest = true;
 			return this;

@@ -16,6 +16,8 @@ public interface Request {
 
 		Builder addMultipartData(String name, String filename, String contentType, byte[] rawContent);
 
+		Builder basicAuth(String user, String password);
+
 		Builder get();
 
 		Builder post();
