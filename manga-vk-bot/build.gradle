@@ -6,7 +6,6 @@ dependencies {
     implementation libraries.gson
     implementation libraries.vksdk
     implementation libraries.logback
-    implementation libraries.okhttp
 }
 
 jar {

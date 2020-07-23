@@ -1,8 +1,8 @@
 package clepto.vk;
 
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import mangal10n.browser.Request;
+import mangal10n.browser.Response;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -17,7 +17,6 @@ public class Messages extends VkModule {
 		super(bot, "messages");
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	public void send(int peer, String message) {
 		Properties params = new Properties();
 		params.put("peer_id", String.valueOf(peer));
@@ -27,8 +26,7 @@ public class Messages extends VkModule {
 		appendBody.put("message", message);
 
 		Request request = request("send", params, appendBody);
-		OkHttpClient client = new OkHttpClient();
-		try (okhttp3.Response response = client.newCall(request).execute()) {
+		try (Response response = request.execute()) {
 			log.debug(response.toString());
 			log.debug(response.body().string());
 		} catch (IOException e) {

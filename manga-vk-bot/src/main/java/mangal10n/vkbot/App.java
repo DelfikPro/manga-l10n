@@ -1,8 +1,5 @@
 package mangal10n.vkbot;
 
-import clepto.net.Method;
-import clepto.net.Request;
-import clepto.net.Response;
 import clepto.vk.VKBot;
 import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
@@ -10,17 +7,23 @@ import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import lombok.val;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import mangal10n.ConfigUtils;
+import mangal10n.browser.Browser;
+import mangal10n.browser.Request;
+import mangal10n.browser.Response;
+import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
 import mangal10n.textrecognition.webservice.WebServerUser;
 
-import java.io.*;
-import java.net.Proxy;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -39,6 +42,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class App {
 
+	private static final Browser browser = new OkHttpBrowser();
 	private static VKBot bot;
 	private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private static String[] translatorLinks = {
@@ -75,14 +79,24 @@ public class App {
 			if (size.isEmpty()) return "Странно, не найдено ни одного размера фотки, которую ты скинул!";
 
 			executor.submit(() -> {
-				Response response = new Request(size.get().url, Method.GET).execute(Proxy.NO_PROXY);
+				Request request = browser.requestBuilder()
+						.url(size.get().url)
+						.build();
+
+				byte[] bytes;
+				try (Response response = request.execute()) {
+					bytes = response.body().bytes();
+				} catch (IOException e) {
+					log.error("{}", e.getMessage(), e);
+					return;
+				}
+
 				for (OCRService ocrService : ocrServices) {
 					final CompletableFuture<String> future = new CompletableFuture<>();
 
 					executor.submit(() -> {
 						try {
-							future.complete(ocrService.doRecognition(response.getBody())
-									.replaceAll("[\n\t\r]", " "));
+							future.complete(ocrService.doRecognition(bytes).replaceAll("[\n\t\r]", " "));
 						} catch (OCRException e) {
 							future.completeExceptionally(e);
 						}

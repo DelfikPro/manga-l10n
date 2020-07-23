@@ -3,7 +3,10 @@ package clepto.vk;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import mangal10n.browser.Browser;
+import mangal10n.browser.Request;
+import mangal10n.browser.Response;
+import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -18,31 +21,26 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 public abstract class VkModule {
 
+	private final Browser browser = new OkHttpBrowser();
 	private final VKBot bot;
 	private final String sectionName;
 
-	@SuppressWarnings("ConstantConditions")
 	protected Request request(String method, Properties params, Properties appendBody) {
-		HttpUrl httpUrl = HttpUrl.parse("https://api.vk.com/method/" + sectionName + "." + method);
-		if (params != null && !params.isEmpty()) {
-			HttpUrl.Builder builder = httpUrl.newBuilder();
+		Request.Builder builder = browser.requestBuilder()
+				.url(String.format("https://api.vk.com/method/%s.%s", sectionName, method));
+
+		if (params != null) {
 			params.forEach((key, value) -> builder.addQueryParameter(key.toString(), value.toString()));
-			httpUrl = builder.build();
 		}
 
-		FormBody.Builder formBuilder = new FormBody.Builder();
-		formBuilder
-				.add("v", "5.103")
-				.add("access_token", bot.getToken());
-		if (appendBody != null && !appendBody.isEmpty()) {
-			appendBody.forEach((key, value) -> formBuilder.add(key.toString(), value.toString()));
-		}
-		FormBody formBody = formBuilder.build();
+		builder.addFormData("v", "5.103")
+				.addFormData("access_token", bot.getToken());
 
-		return new Request.Builder()
-				.url(httpUrl)
-				.post(formBody)
-				.build();
+		if (appendBody != null) {
+			appendBody.forEach((key, value) -> builder.addFormData(key.toString(), value.toString()));
+		}
+
+		return builder.build();
 	}
 
 	protected Request request(String method, Properties params) {
@@ -53,10 +51,8 @@ public abstract class VkModule {
 		return execute(request, true);
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	protected JSONObject execute(Request request, boolean responseSubobject) {
-		OkHttpClient client = new OkHttpClient();
-		try (Response response = client.newCall(request).execute()) {
+		try (Response response = request.execute()) {
 			JSONTokener tokener = new JSONTokener(response.body().byteStream());
 			JSONObject json = new JSONObject(tokener);
 
