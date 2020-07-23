@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import clepto.vk.VKBot;
 
+import java.util.Properties;
+
 @Slf4j
 public class Groups extends VkModule {
 
@@ -13,9 +15,10 @@ public class Groups extends VkModule {
 	}
 
 	public LongPollData getLongPollServer() {
-		JsonObject json = execute(request("getLongPollServer")
-				.param("group_id", getBot().getGroup())
-			   );
+		Properties params = new Properties();
+		params.put("group_id", getBot().getGroup());
+
+		JsonObject json = execute(request("getLongPollServer", params));
 
 		try {
 			return new LongPollData(
@@ -31,10 +34,13 @@ public class Groups extends VkModule {
 	}
 
 	public void setDescription(String description) {
-		execute(request("edit")
-						.param("group_id", getBot().getGroup())
-						.body("description", description)
-								 );
+		Properties params = new Properties();
+		params.put("group_id", getBot().getGroup());
+
+		Properties appendBody = new Properties();
+		appendBody.put("description", description);
+
+		execute(request("edit", params, appendBody));
 	}
 
 }

@@ -1,17 +1,19 @@
 package clepto.vk;
 
-import clepto.net.Method;
-import clepto.net.Request;
 import clepto.vk.groups.LongPollData;
 import clepto.vk.model.Message;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import mangal10n.browser.Browser;
+import mangal10n.browser.Request;
+import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 
 @Slf4j
 public class LongPoll extends VkModule implements Runnable {
 
+	private final Browser browser = new OkHttpBrowser();
 	protected String key;
 	protected String server;
 	protected String ts;
@@ -48,13 +50,14 @@ public class LongPoll extends VkModule implements Runnable {
 		requestLongPollServer();
 		log.info("VK LongPoll server started successfully.");
 		while (true) {
-
-			Request request = new Request((server.startsWith("http") ? "" : "https://") + server, Method.GET);
-			request.param("act", "a_check");
-			request.param("key", key);
-			request.param("ts", ts);
-			request.param("wait", "25");
-			request.param("mode", "2");
+			Request request = browser.requestBuilder()
+					.url((server.startsWith("http") ? "" : "https://") + server)
+					.addQueryParameter("act", "a_check")
+					.addQueryParameter("key", key)
+					.addQueryParameter("ts", ts)
+					.addQueryParameter("wait", "25")
+					.addQueryParameter("mode", "2")
+					.build();
 
 			JsonObject response = execute(request, false);
 //			System.out.println(response);

@@ -1,16 +1,17 @@
 package mangal10n.textrecognition.easyscreen;
 
 import lombok.extern.slf4j.Slf4j;
+import mangal10n.browser.Browser;
+import mangal10n.browser.Request;
+import mangal10n.browser.Response;
+import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
-import okhttp3.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.MessageFormat;
-import java.time.Duration;
-import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -66,90 +67,64 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	private String requestId() throws IOException {
-		okhttp3.Request request = new okhttp3.Request.Builder()
+		Browser browser = new OkHttpBrowser();
+		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/GetNewId")
 				.build();
 
-		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(Duration.ofMinutes(1))
-				.build();
-		try (okhttp3.Response response = client.newCall(request).execute()) {
-			return Objects.requireNonNull(response.body()).string()
-					.replace("\"", "");
+		try (Response response = request.execute()) {
+			return response.body().string().replace("\"", "");
 		}
 	}
 
 	private String sendFile(String id, byte[] bytes) throws IOException {
-		MultipartBody multipartBody = new MultipartBody.Builder()
-				.setType(MultipartBody.FORM)
-				.addFormDataPart("Id", id)
-				.addFormDataPart("Index", "0")
-				.addFormDataPart("file", "32.jpg", RequestBody.create(bytes, MediaType.get("image/jpeg")))
-				.build();
-
-		okhttp3.Request request = new okhttp3.Request.Builder()
+		Browser browser = new OkHttpBrowser();
+		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/Upload")
 				.addHeader("x-requested-with", "XMLHttpRequest")
-				.post(multipartBody)
+				.addMultipartData("Id", id)
+				.addMultipartData("Index", "0")
+				.addMultipartData("file", "32.jpg", "image/jpeg", bytes)
 				.build();
 
-		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(Duration.ofMinutes(1))
-				.build();
-		try (okhttp3.Response response = client.newCall(request).execute()) {
-			return Objects.requireNonNull(response.body()).string();
+		try (Response response = request.execute()) {
+			return response.body().string();
 		}
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	private String requestStartConvert(String id) throws IOException {
-		final HttpUrl httpUrl = HttpUrl.parse("https://online.easyscreenocr.com/Home/StartConvert")
-				.newBuilder()
+		Browser browser = new OkHttpBrowser();
+		mangal10n.browser.Request request1 = browser.requestBuilder()
+				.url("https://online.easyscreenocr.com/Home/StartConvert")
 				.addQueryParameter("Id", id)
 				.addQueryParameter("SelectedLanguage", "1")
 				.build();
 
-		okhttp3.Request request = new okhttp3.Request.Builder()
-				.url(httpUrl)
-				.build();
-
-		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(Duration.ofMinutes(1))
-				.build();
-		try (okhttp3.Response response = client.newCall(request).execute()) {
-			return Objects.requireNonNull(response.body()).string();
+		try (Response response = request1.execute()) {
+			return response.body().string();
 		}
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	private String requestGetDownloadLink(String id) throws IOException {
-		final HttpUrl httpUrl = HttpUrl.parse("https://online.easyscreenocr.com/Home/GetDownloadLink")
-				.newBuilder()
+		Browser browser = new OkHttpBrowser();
+		Request request = browser.requestBuilder()
+				.url("https://online.easyscreenocr.com/Home/GetDownloadLink")
 				.addQueryParameter("Id", id)
 				.build();
 
-		okhttp3.Request request = new okhttp3.Request.Builder()
-				.url(httpUrl)
-				.build();
-
-		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(Duration.ofMinutes(1))
-				.build();
-		try (okhttp3.Response response = client.newCall(request).execute()) {
-			return Objects.requireNonNull(response.body()).string();
+		try (Response response = request.execute()) {
+			return response.body().string();
 		}
 	}
 
 	private byte[] downloadFile(String id) throws IOException {
-		okhttp3.Request request = new okhttp3.Request.Builder()
+		Browser browser = new OkHttpBrowser();
+		Request request = browser.requestBuilder()
 				.url(MessageFormat.format("https://online.easyscreenocr.com/UploadedImageForOCR/{0}/{0}.zip", id))
 				.build();
 
-		OkHttpClient client = new OkHttpClient.Builder()
-				.readTimeout(Duration.ofMinutes(1))
-				.build();
-		try (okhttp3.Response response = client.newCall(request).execute()) {
-			return Objects.requireNonNull(response.body()).bytes();
+		try (Response response = request.execute()) {
+			return response.body().bytes();
 		}
 	}
 

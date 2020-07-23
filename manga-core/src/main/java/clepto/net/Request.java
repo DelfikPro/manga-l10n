@@ -14,6 +14,7 @@ import java.util.*;
 @ToString
 public class Request {
 
+	private static final byte[] EMPTY_BODY = new byte[0];
 	private String address;
 	private final Method method;
 	private final Map<String, String> parameters = new HashMap<>();
@@ -34,6 +35,9 @@ public class Request {
 			con.setInstanceFollowRedirects(false);
 			con.setRequestMethod(method.name());
 			//			for (Map.Entry<String, String> stringStringEntry : headers.entrySet()) System.out.println(stringStringEntry);
+			if (!headers.containsKey("Content-Type")) {
+				headers.put("Content-Type", "application/octet-stream");
+			}
 			headers.forEach(con::setRequestProperty);
 			if (!cookies.isEmpty()) {
 				StringBuilder b = new StringBuilder();
@@ -97,13 +101,31 @@ public class Request {
 
 			headers.put(name, values.get(0));
 		}
-		byte[] body = new byte[0];
-		if (code != 503) try {
-			InputStream inputStream = con.getInputStream();
-			body = NetUtil.readInputStreamFluix(inputStream);
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
+		byte[] body;
+		String contentLengthStr = con.getHeaderField("Content-Length");
+		if (contentLengthStr != null && !contentLengthStr.strip().equals("")) {
+			int contentLength;
+			try {
+				contentLength = Integer.parseInt(contentLengthStr);
+			} catch (NumberFormatException e) {
+				log.warn("{}", e.getMessage(), e);
+				contentLength = 0;
+			}
+
+			if (contentLength > 0) {
+				try {
+					InputStream inputStream = con.getInputStream();
+					body = NetUtil.readInputStreamFluix(inputStream);
+				} catch (IOException ex) {
+					throw new RuntimeException(ex);
+				}
+			} else {
+				body = EMPTY_BODY;
+			}
+		} else {
+			body = EMPTY_BODY;
 		}
+
 		return new Response(code, message, headers, cookies, body);
 	}
 
