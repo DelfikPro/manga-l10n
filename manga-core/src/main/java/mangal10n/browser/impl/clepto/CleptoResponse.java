@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import mangal10n.browser.Response;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
@@ -39,6 +41,11 @@ public class CleptoResponse implements Response {
 		@Override
 		public byte[] bytes() {
 			return body;
+		}
+
+		@Override
+		public InputStream byteStream() {
+			return new ByteArrayInputStream(body);
 		}
 	}
 }

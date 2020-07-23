@@ -10,6 +10,8 @@ import okhttp3.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @AllArgsConstructor
@@ -38,9 +40,11 @@ public class OkHttpRequest implements Request {
 	public static class OkHttpRequestBuilder implements Request.Builder {
 
 		private static final byte[] EMPTY_POST_DATA = new byte[0];
+		private final Map<String, String> headers = new HashMap<>();
 		private final okhttp3.Request.Builder originRequestBuilder;
 		private HttpUrl.Builder okhttpUrlBuilder;
 		private MultipartBody.Builder multipartBodyBuilder;
+		private FormBody.Builder formbuilder;
 		private boolean isGetRequest = true; // false == POST
 		private byte[] postData;
 
@@ -58,7 +62,14 @@ public class OkHttpRequest implements Request {
 
 		@Override
 		public Builder addHeader(String name, String value) {
-			originRequestBuilder.addHeader(name, value);
+			headers.put(name, value);
+			return this;
+		}
+
+		@Override
+		public Builder addFormData(String name, String value) {
+			prepareFormBody();
+			formbuilder.add(name, value);
 			return this;
 		}
 
@@ -103,17 +114,22 @@ public class OkHttpRequest implements Request {
 		@Override
 		public Builder post(byte[] bytes) {
 			isGetRequest = false;
-			postData = bytes;
+
+			if (multipartBodyBuilder == null && formbuilder == null) {
+				postData = bytes;
+			}
 			return this;
 		}
 
 		@Override
 		public Request build() {
 			originRequestBuilder.url(okhttpUrlBuilder.build());
+			headers.forEach(originRequestBuilder::addHeader);
 
 			if (multipartBodyBuilder != null) {
-				MultipartBody multipartBody = multipartBodyBuilder.build();
-				originRequestBuilder.post(multipartBody);
+				originRequestBuilder.post(multipartBodyBuilder.build());
+			} else if (formbuilder != null) {
+				originRequestBuilder.post(formbuilder.build());
 			} else if (!isGetRequest) {
 				originRequestBuilder.post(RequestBody.create(postData));
 			}
@@ -125,6 +141,16 @@ public class OkHttpRequest implements Request {
 			if (multipartBodyBuilder == null) {
 				multipartBodyBuilder = new MultipartBody.Builder();
 				multipartBodyBuilder.setType(MultipartBody.FORM);
+			}
+		}
+
+		private void prepareFormBody() {
+			if (formbuilder == null) {
+				if (!headers.containsKey("Content-Type")) {
+					addHeader("Content-Type", "application/x-www-form-urlencoded");
+				}
+				isGetRequest = false;
+				formbuilder = new FormBody.Builder();
 			}
 		}
 	}

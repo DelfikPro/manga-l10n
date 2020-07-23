@@ -31,6 +31,7 @@ public class CleptoRequest implements Request {
 		private final Map<String, String> headers = new HashMap<>();
 		private final Map<String, String> urlParams = new HashMap<>();
 		private String url;
+		private Map<String, String> formData;
 		private MultiPartBodyPublisher multipartBody;
 		private boolean isGetRequest = true; // false == POST
 		private byte[] postData;
@@ -50,6 +51,13 @@ public class CleptoRequest implements Request {
 		@Override
 		public Builder addHeader(String name, String value) {
 			headers.put(name, value);
+			return this;
+		}
+
+		@Override
+		public Builder addFormData(String name, String value) {
+			prepareFormData();
+			formData.put(name, value);
 			return this;
 		}
 
@@ -107,6 +115,13 @@ public class CleptoRequest implements Request {
 				headers.forEach(builder::header);
 				builder.POST(multipartBody.buildForJavaNet());
 				return new JavaNetRequest(builder);
+			} else if (formData != null) {
+				clepto.net.Request request = new clepto.net.Request(url, Method.POST);
+				urlParams.forEach(request::param);
+				headers.forEach(request::header);
+				formData.forEach(request::body);
+
+				return new CleptoRequest(request);
 			} else if (!isGetRequest) {
 				clepto.net.Request request = new clepto.net.Request(url, Method.POST);
 				urlParams.forEach(request::param);
@@ -127,6 +142,16 @@ public class CleptoRequest implements Request {
 			if (multipartBody == null) {
 				multipartBody = new MultiPartBodyPublisher();
 				addHeader("Content-Type", "multipart/form-data; boundary=" + multipartBody.getBoundary());
+			}
+		}
+
+		private void prepareFormData() {
+			if (formData == null) {
+				formData = new HashMap<>();
+				if (!headers.containsKey("Content-Type")) {
+					addHeader("Content-Type", "application/x-www-form-urlencoded");
+				}
+				post();
 			}
 		}
 	}

@@ -12,6 +12,8 @@ public interface Request {
 
 		Builder addHeader(String name, String value);
 
+		Builder addFormData(String name, String value);
+
 		Builder addMultipartData(String name, String value);
 
 		Builder addMultipartData(String name, String filename, String contentType, byte[] rawContent);

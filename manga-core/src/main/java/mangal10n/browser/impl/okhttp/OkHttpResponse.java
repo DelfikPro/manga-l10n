@@ -6,6 +6,7 @@ import mangal10n.browser.Response;
 import mangal10n.browser.impl.BrowserException;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 @RequiredArgsConstructor
 public class OkHttpResponse implements Response {
@@ -48,6 +49,11 @@ public class OkHttpResponse implements Response {
 			} catch (IOException e) {
 				throw new BrowserException(e);
 			}
+		}
+
+		@Override
+		public InputStream byteStream() {
+			return originResponseBody.byteStream();
 		}
 	}
 }

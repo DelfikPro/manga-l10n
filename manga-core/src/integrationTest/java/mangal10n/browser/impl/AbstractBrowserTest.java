@@ -187,5 +187,30 @@ public abstract class AbstractBrowserTest {
 		}
 	}
 
+	@Test
+	public void testFormData() throws IOException {
+		final Request request = browser.requestBuilder()
+				.url("https://httpbin.org/post")
+				.addFormData("name1", "value1")
+				.addFormData("name2", "value2")
+				.build();
+
+		try (Response response = request.execute()) {
+			JsonObject jsonObject = gson.fromJson(response.body().string(), JsonObject.class);
+			System.out.println(jsonObject.toString());
+
+			assertFalse(jsonObject.getAsJsonObject("form").keySet().isEmpty());
+
+			JsonObject form = jsonObject.getAsJsonObject("form");
+			assertTrue(form.has("name1"));
+			assertEquals("value1", form.get("name1").getAsString());
+			assertTrue(form.has("name2"));
+			assertEquals("value2", form.get("name2").getAsString());
+
+			JsonObject headers = jsonObject.getAsJsonObject("headers");
+			assertEquals("application/x-www-form-urlencoded", headers.get("Content-Type").getAsString());
+		}
+	}
+
 	protected abstract Browser createBrowser();
 }

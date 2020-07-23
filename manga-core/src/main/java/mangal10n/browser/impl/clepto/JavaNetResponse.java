@@ -3,6 +3,8 @@ package mangal10n.browser.impl.clepto;
 import lombok.RequiredArgsConstructor;
 import mangal10n.browser.Response;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
@@ -39,6 +41,11 @@ public class JavaNetResponse implements Response {
 		@Override
 		public byte[] bytes() {
 			return originResponse.body().getBytes(StandardCharsets.UTF_8);
+		}
+
+		@Override
+		public InputStream byteStream() {
+			return new ByteArrayInputStream(bytes());
 		}
 	}
 }
