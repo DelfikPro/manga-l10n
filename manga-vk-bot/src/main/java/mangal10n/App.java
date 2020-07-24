@@ -1,4 +1,4 @@
-package mangal10n.vkbot;
+package mangal10n;
 
 import clepto.vk.VKBot;
 import clepto.vk.model.Attachment;
@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import mangal10n.ConfigUtils;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
