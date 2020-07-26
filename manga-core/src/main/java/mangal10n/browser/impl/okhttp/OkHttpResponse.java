@@ -19,6 +19,11 @@ public class OkHttpResponse implements Response {
 	}
 
 	@Override
+	public String header(String name) {
+		return originResponse.header(name);
+	}
+
+	@Override
 	public Body body() {
 		return new OkHttpResponseBody(originResponse.body());
 	}

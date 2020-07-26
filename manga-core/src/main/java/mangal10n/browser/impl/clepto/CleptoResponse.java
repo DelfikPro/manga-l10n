@@ -19,6 +19,11 @@ public class CleptoResponse implements Response {
 	}
 
 	@Override
+	public String header(String name) {
+		return originResponse.getHeader(name);
+	}
+
+	@Override
 	public Body body() {
 		return new CleptoResponseBody(originResponse.getBody());
 	}

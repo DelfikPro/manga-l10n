@@ -10,6 +10,14 @@ public interface Request {
 
 		Builder addQueryParameter(String name, String value);
 
+		default Builder addQueryParameter(String name, Integer value) {
+			return addQueryParameter(name, String.valueOf(value));
+		}
+
+		default Builder addQueryParameter(String name, Long value) {
+			return addQueryParameter(name, String.valueOf(value));
+		}
+
 		Builder addHeader(String name, String value);
 
 		Builder addFormData(String name, String value);

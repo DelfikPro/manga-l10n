@@ -7,6 +7,8 @@ public interface Response extends Closeable {
 
 	int code();
 
+	String header(String name);
+
 	Body body();
 
 	interface Body {

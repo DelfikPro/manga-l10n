@@ -19,6 +19,11 @@ public class JavaNetResponse implements Response {
 	}
 
 	@Override
+	public String header(String name) {
+		return originResponse.headers().firstValue(name).orElse(null);
+	}
+
+	@Override
 	public Body body() {
 		return new JavaNetResponseBody(originResponse);
 	}
