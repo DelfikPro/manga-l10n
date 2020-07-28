@@ -1,6 +1,7 @@
 package mangal10n;
 
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @UtilityClass
 public class ConfigUtils {
 	private final Yaml YAML = new Yaml();
@@ -26,7 +28,7 @@ public class ConfigUtils {
 				return Collections.emptyMap();
 			}
 		} else {
-			//TODO в логгер написать что файл не найден
+			log.error("File '{}' not found", pathToFile.toString());
 			return Collections.emptyMap();
 		}
 	}
