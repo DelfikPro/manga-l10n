@@ -2,6 +2,7 @@ package mangal10n.textrecognition.easyscreen;
 
 import com.google.inject.Guice;
 import mangal10n.config.OcrModule;
+import mangal10n.config.OkHttpBrowserModule;
 import mangal10n.textrecognition.AbstractOcrTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -18,7 +19,10 @@ public class EasyScreenOCRTest extends AbstractOcrTest {
 
 	@BeforeClass
 	public static void beforeClass() {
-		injector = Guice.createInjector(new OcrModule());
+		injector = Guice.createInjector(
+				new OkHttpBrowserModule(),
+				new OcrModule()
+		);
 	}
 
 	@Before

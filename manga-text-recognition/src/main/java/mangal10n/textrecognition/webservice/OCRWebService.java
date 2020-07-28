@@ -1,17 +1,14 @@
 package mangal10n.textrecognition.webservice;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
-import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.List;
@@ -29,6 +26,7 @@ public class OCRWebService implements OCRService {
 	private static final String URL = "http://www.ocrwebservice.com/restservices/processDocument?gettext=true&language=english,chinesesimplified,english";
 
 	private final Gson gson;
+	private final Browser browser;
 	private final List<WebServerUser> users;
 
 	@Override
@@ -45,7 +43,6 @@ public class OCRWebService implements OCRService {
 	public String doRecognition(byte[] image) {
 		try {
 			for (WebServerUser user : users) {
-				Browser browser = new OkHttpBrowser();
 				Request request = browser.requestBuilder()
 						.url(URL)
 						.basicAuth(user.getUser(), user.getToken())

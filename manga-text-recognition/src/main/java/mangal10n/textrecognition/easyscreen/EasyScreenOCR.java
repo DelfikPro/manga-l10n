@@ -1,5 +1,6 @@
 package mangal10n.textrecognition.easyscreen;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
@@ -16,9 +17,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Slf4j
+@RequiredArgsConstructor
 public class EasyScreenOCR implements OCRService {
 
 	private static final int MAX_TRIES = 5;
+	private final Browser browser;
 
 	@Override
 	public String getName() {
@@ -67,7 +70,6 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	private String requestId() throws IOException {
-		Browser browser = new OkHttpBrowser();
 		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/GetNewId")
 				.build();
@@ -78,7 +80,6 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	private String sendFile(String id, byte[] bytes) throws IOException {
-		Browser browser = new OkHttpBrowser();
 		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/Upload")
 				.addHeader("x-requested-with", "XMLHttpRequest")
@@ -93,7 +94,6 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	private String requestStartConvert(String id) throws IOException {
-		Browser browser = new OkHttpBrowser();
 		mangal10n.browser.Request request1 = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/StartConvert")
 				.addQueryParameter("Id", id)
@@ -106,7 +106,6 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	private String requestGetDownloadLink(String id) throws IOException {
-		Browser browser = new OkHttpBrowser();
 		Request request = browser.requestBuilder()
 				.url("https://online.easyscreenocr.com/Home/GetDownloadLink")
 				.addQueryParameter("Id", id)
@@ -118,7 +117,6 @@ public class EasyScreenOCR implements OCRService {
 	}
 
 	private byte[] downloadFile(String id) throws IOException {
-		Browser browser = new OkHttpBrowser();
 		Request request = browser.requestBuilder()
 				.url(MessageFormat.format("https://online.easyscreenocr.com/UploadedImageForOCR/{0}/{0}.zip", id))
 				.build();

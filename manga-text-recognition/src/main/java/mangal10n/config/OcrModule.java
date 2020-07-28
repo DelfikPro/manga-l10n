@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.inject.*;
 import com.google.inject.multibindings.MapBinder;
 import lombok.RequiredArgsConstructor;
+import mangal10n.browser.Browser;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
@@ -17,7 +18,7 @@ public class OcrModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		MapBinder<String, OCRService> mapBinder = MapBinder.newMapBinder(binder(), String.class, OCRService. class);
-		mapBinder.addBinding(EasyScreenOCR.class.getSimpleName()).to(EasyScreenOCR.class).in(Singleton.class);
+		mapBinder.addBinding(EasyScreenOCR.class.getSimpleName()).toProvider(EasyScreenProvider.class).in(Singleton.class);
 		mapBinder.addBinding(OCRWebService.class.getSimpleName()).toProvider(OcrWebServiceProvider.class).in(Singleton.class);
 	}
 
@@ -26,6 +27,7 @@ public class OcrModule extends AbstractModule {
 
 		private final Injector injector;
 		private final Gson gson;
+		private final Browser browser;
 
 		@Override
 		public OCRService get() {
@@ -37,7 +39,18 @@ public class OcrModule extends AbstractModule {
 				users = Collections.emptyList();
 			}
 
-			return new OCRWebService(gson, users);
+			return new OCRWebService(gson, browser, users);
+		}
+	}
+
+	@RequiredArgsConstructor(onConstructor = @__({ @Inject }))
+	static class EasyScreenProvider implements Provider<OCRService> {
+
+		private final Browser browser;
+
+		@Override
+		public OCRService get() {
+			return new EasyScreenOCR(browser);
 		}
 	}
 }

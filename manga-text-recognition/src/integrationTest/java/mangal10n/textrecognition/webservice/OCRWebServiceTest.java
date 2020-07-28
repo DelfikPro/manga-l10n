@@ -3,6 +3,7 @@ package mangal10n.textrecognition.webservice;
 import com.google.gson.Gson;
 import com.google.inject.*;
 import mangal10n.config.OcrModule;
+import mangal10n.config.OkHttpBrowserModule;
 import mangal10n.textrecognition.AbstractOcrTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -22,6 +23,7 @@ public class OCRWebServiceTest extends AbstractOcrTest {
 	@BeforeClass
 	public static void beforeClass() {
 		injector = Guice.createInjector(
+				new OkHttpBrowserModule(),
 				new TestingModule(),
 				new OcrModule()
 		);
