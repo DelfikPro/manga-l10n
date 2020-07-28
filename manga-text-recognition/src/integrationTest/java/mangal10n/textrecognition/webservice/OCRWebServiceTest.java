@@ -1,8 +1,12 @@
 package mangal10n.textrecognition.webservice;
 
-import mangal10n.textrecognition.OCRService;
+import com.google.gson.Gson;
+import com.google.inject.*;
+import mangal10n.config.OcrModule;
+import mangal10n.textrecognition.AbstractOcrTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,23 +17,19 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class OCRWebServiceTest {
+public class OCRWebServiceTest extends AbstractOcrTest {
 
-	private OCRService ocr;
+	@BeforeClass
+	public static void beforeClass() {
+		injector = Guice.createInjector(
+				new TestingModule(),
+				new OcrModule()
+		);
+	}
 
 	@Before
-	public void setUp() {
-		final String ocrLogin = System.getProperty("ocrLogin");
-		final String ocrToken = System.getProperty("ocrToken");
-		System.out.printf("Login: %s | Token: %s", ocrLogin, ocrToken);
-
-		List<WebServerUser> users;
-		if (isBlank(ocrLogin) || isBlank(ocrToken)) {
-			users = Collections.emptyList();
-		} else {
-			users = Collections.singletonList(new WebServerUser(ocrLogin, ocrToken));
-		}
-		ocr = new OCRWebService(users);
+	public void before() {
+		ocr = getInstanceByName(OCRWebService.class.getSimpleName());
 	}
 
 	@Test
@@ -43,7 +43,36 @@ public class OCRWebServiceTest {
 		assertEquals(expectedValue, recognition.replaceAll("\r\n", "\n"));
 	}
 
-	private boolean isBlank(String string) {
-		return string == null || string.equals("");
+	private static class TestingModule extends AbstractModule {
+
+		@Override
+		protected void configure() {
+			TypeLiteral<List<WebServerUser>> typeLiteral = new TypeLiteral<>(){};
+			bind(typeLiteral).toProvider(WebServerUserListProvider.class).in(Singleton.class);
+			bind(Gson.class).toInstance(new Gson());
+		}
+	}
+
+	private static class WebServerUserListProvider implements Provider<List<WebServerUser>> {
+
+		@Override
+		public List<WebServerUser> get() {
+			final String ocrLogin = System.getProperty("ocrLogin");
+			final String ocrToken = System.getProperty("ocrToken");
+			System.out.printf("Login: %s | Token: %s", ocrLogin, ocrToken);
+
+			List<WebServerUser> users;
+			if (isBlank(ocrLogin) || isBlank(ocrToken)) {
+				users = Collections.emptyList();
+			} else {
+				users = Collections.singletonList(new WebServerUser(ocrLogin, ocrToken));
+			}
+
+			return users;
+		}
+
+		private boolean isBlank(String string) {
+			return string == null || string.equals("");
+		}
 	}
 }

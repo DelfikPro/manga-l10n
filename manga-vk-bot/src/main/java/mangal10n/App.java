@@ -5,34 +5,32 @@ import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
 import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.TypeLiteral;
+import com.google.inject.name.Names;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
 import mangal10n.browser.impl.okhttp.OkHttpBrowser;
+import mangal10n.config.AppModule;
+import mangal10n.config.OcrModule;
+import mangal10n.config.WebServerUserModule;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
-import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
-import mangal10n.textrecognition.webservice.OCRWebService;
-import mangal10n.textrecognition.webservice.WebServerUser;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -49,18 +47,25 @@ public class App {
 			"https://translate.systran.net/translationTools/text?source=zh&target=en&input="
 	};
 
-	private static OCRService[] ocrServices;
+	private static Injector injector;
+	private static Set<OCRService> ocrServices;
 
 	public static void main(String[] args) {
 		log.info("Hello there, fellow traveler.");
 
-		initOcr();
+		injector = Guice.createInjector(
+				new AppModule(),
+				new WebServerUserModule(),
+				new OcrModule()
+		);
 
-		Map<String, String> config = ConfigUtils.readYamlConfigFromFile("config.yml");
+		Map<String, String> config = getConfig();
 		if (config.isEmpty()) {
 			log.error("No configuration file found!");
 			return;
 		}
+
+		initOcr();
 
 		bot = new VKBot(config.get("bot-id"), config.get("bot-token"));
 		bot.getLongPoll().setHandler(App::handle);
@@ -89,6 +94,7 @@ public class App {
 					log.error("{}", e.getMessage(), e);
 					return;
 				}
+
 
 				for (OCRService ocrService : ocrServices) {
 					final CompletableFuture<String> future = new CompletableFuture<>();
@@ -125,20 +131,13 @@ public class App {
 	}
 
 	private static void initOcr() {
-		List<WebServerUser> users;
-		try (val bufferedReader = new BufferedReader(new FileReader(new File("tokens.json")))) {
-			users = new Gson().fromJson(
-					bufferedReader.lines().collect(Collectors.joining("\n")),
-					new TypeToken<List<WebServerUser>>() {}.getType());
-			users.forEach(System.out::println);
-		} catch (IOException e) {
-			e.printStackTrace();
-			users = Collections.emptyList();
-		}
+		TypeLiteral<Map<String, OCRService>> typeLiteral = new TypeLiteral<>(){};
+		ocrServices = new HashSet<>(injector.getInstance(Key.get(typeLiteral)).values());
+	}
 
-		//TODO костыльно как-то...
-		ocrServices = new OCRService[2];
-		ocrServices[0] = new OCRWebService(users);
-		ocrServices[1] = new EasyScreenOCR();
+	private static Map<String, String> getConfig() {
+		TypeLiteral<Map<String, String>> typeLiteral = new TypeLiteral<>(){};
+		final Key<Map<String, String>> key = Key.get(typeLiteral, Names.named("configMap"));
+		return injector.getInstance(key);
 	}
 }

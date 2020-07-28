@@ -1,8 +1,11 @@
 package mangal10n.textrecognition.easyscreen;
 
-import mangal10n.textrecognition.OCRService;
+import com.google.inject.Guice;
+import mangal10n.config.OcrModule;
+import mangal10n.textrecognition.AbstractOcrTest;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -11,13 +14,16 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class EasyScreenOCRTest {
+public class EasyScreenOCRTest extends AbstractOcrTest {
 
-	private OCRService ocr;
+	@BeforeClass
+	public static void beforeClass() {
+		injector = Guice.createInjector(new OcrModule());
+	}
 
 	@Before
-	public void setUp() {
-		ocr = new EasyScreenOCR();
+	public void before() {
+		ocr = getInstanceByName(EasyScreenOCR.class.getSimpleName());
 	}
 
 	@Test

@@ -41,6 +41,11 @@ subprojects {
     repositories {
         mavenLocal()
         mavenCentral()
+
+        //guice-betas
+        //https://github.com/mcculls/guice-betas
+        //https://github.com/google/guice/issues/1133
+        maven { url 'https://mcculls.github.io/guice-betas/maven2/' }
     }
 
     ext {
@@ -53,6 +58,8 @@ subprojects {
                 slf4j     : ['org.slf4j:slf4j-api:1.7.30'],
                 logback   : ['ch.qos.logback:logback-core:1.2.3',
                              'ch.qos.logback:logback-classic:1.2.3'],
+                guice     : ['com.google.inject:guice:4.2.4-20200419-NEWAOP-BETA',
+                             'com.google.inject.extensions:guice-multibindings:4.2.3'],
                 junit     : ['junit:junit:4.12']
         ]
     }
@@ -61,6 +68,7 @@ subprojects {
         annotationProcessor libraries.lombok
         compileOnly libraries.lombok
         implementation libraries.slf4j
+        implementation libraries.guice
 
         testImplementation libraries.junit
     }
