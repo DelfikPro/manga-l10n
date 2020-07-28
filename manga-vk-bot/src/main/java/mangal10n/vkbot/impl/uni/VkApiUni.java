@@ -6,6 +6,7 @@
 package mangal10n.vkbot.impl.uni;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
 import mangal10n.browser.Browser;
@@ -30,7 +31,7 @@ public class VkApiUni implements VkApi {
 	private final Gson gson;
 
 	@Override
-	public JsonObject executeMethod(String method, Params params, boolean responaeAsIs) {
+	public JsonElement executeMethod(String method, Params params, boolean responaeAsIs) {
 		Request.Builder builder = browser.requestBuilder().url(VKAPI_URL + method);
 		params.getPrimaryParams().forEach(builder::addQueryParameter);
 		builder.addFormData("v", apiVersion).addFormData("access_token", accessToken);
@@ -44,7 +45,7 @@ public class VkApiUni implements VkApi {
 				return jsonObject;
 			} else {
 				checkJson(jsonObject);
-				return jsonObject.getAsJsonObject("response");
+				return jsonObject.get("response");
 			}
 		} catch (IOException e) {
 			throw new VkApiException(e);
@@ -57,7 +58,7 @@ public class VkApiUni implements VkApi {
 				.addSecondaryParam("need_pts", "1")
 				.addSecondaryParam("group_id", groupId)
 				.build()
-		);
+		).getAsJsonObject();
 
 		String serverUrl = longPollData.get("server").getAsString();
 		if (!serverUrl.startsWith("https://")) {

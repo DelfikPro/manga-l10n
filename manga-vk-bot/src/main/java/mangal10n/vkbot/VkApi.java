@@ -1,12 +1,12 @@
 package mangal10n.vkbot;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 
 public interface VkApi {
 
-	JsonObject executeMethod(String method, Params params, boolean responseAsIs);
+	JsonElement executeMethod(String method, Params params, boolean responseAsIs);
 
-	default JsonObject executeMethod(String method, Params params) {
+	default JsonElement executeMethod(String method, Params params) {
 		return executeMethod(method, params, false);
 	}
 

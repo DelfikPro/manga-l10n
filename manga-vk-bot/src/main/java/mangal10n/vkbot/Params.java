@@ -35,6 +35,10 @@ public class Params {
 			return this;
 		}
 
+		public Builder addPrimaryParam(String key, Long value) {
+			return addPrimaryParam(key, String.valueOf(value));
+		}
+
 		/**
 		 * Параметр, отправляемый в теле метода
 		 */
