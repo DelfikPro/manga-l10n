@@ -2,6 +2,7 @@ package mangal10n.browser.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.inject.Injector;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
@@ -17,13 +18,14 @@ import static org.junit.Assert.*;
 
 public abstract class AbstractBrowserTest {
 
-	protected Gson gson;
-	protected Browser browser;
+	protected static Injector injector;
+	private Gson gson;
+	private Browser browser;
 
 	@Before
-	public void setUp() {
-		gson = new Gson();
-		browser = createBrowser();
+	public void before() {
+		gson = injector.getInstance(Gson.class);
+		browser = injector.getInstance(Browser.class);
 	}
 
 	@Test
@@ -211,6 +213,4 @@ public abstract class AbstractBrowserTest {
 			assertEquals("application/x-www-form-urlencoded", headers.get("Content-Type").getAsString());
 		}
 	}
-
-	protected abstract Browser createBrowser();
 }

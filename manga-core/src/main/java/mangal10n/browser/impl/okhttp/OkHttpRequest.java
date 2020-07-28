@@ -9,7 +9,6 @@ import okhttp3.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -17,12 +16,12 @@ import java.util.Objects;
 @AllArgsConstructor
 public class OkHttpRequest implements Request {
 
+	private final OkHttpClient client;
 	private final okhttp3.Request originRequest;
 
 	@Override
 	public Response execute() {
 		try {
-			OkHttpClient client = createClient();
 			okhttp3.Response response = client.newCall(originRequest).execute();
 			return new OkHttpResponse(response);
 		} catch (IOException e) {
@@ -30,17 +29,12 @@ public class OkHttpRequest implements Request {
 		}
 	}
 
-	private OkHttpClient createClient() {
-		return new OkHttpClient.Builder()
-				.readTimeout(Duration.ofMinutes(1))
-				.build();
-	}
-
 	@RequiredArgsConstructor
 	public static class OkHttpRequestBuilder implements Request.Builder {
 
 		private static final byte[] EMPTY_POST_DATA = new byte[0];
 		private final Map<String, String> headers = new HashMap<>();
+		private final OkHttpClient client;
 		private final okhttp3.Request.Builder originRequestBuilder;
 		private HttpUrl.Builder okhttpUrlBuilder;
 		private MultipartBody.Builder multipartBodyBuilder;
@@ -134,7 +128,7 @@ public class OkHttpRequest implements Request {
 				originRequestBuilder.post(RequestBody.create(postData));
 			}
 
-			return new OkHttpRequest(originRequestBuilder.build());
+			return new OkHttpRequest(client, originRequestBuilder.build());
 		}
 
 		private void prepareMultipart() {

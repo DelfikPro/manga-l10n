@@ -1,12 +1,18 @@
 package mangal10n.browser.impl.clepto;
 
-import mangal10n.browser.Browser;
+import com.google.inject.Guice;
 import mangal10n.browser.impl.AbstractBrowserTest;
+import mangal10n.config.CleptoBrowserModule;
+import mangal10n.config.GsonModule;
+import org.junit.BeforeClass;
 
 public class CleptoBrowserTest extends AbstractBrowserTest {
 
-	@Override
-	protected Browser createBrowser() {
-		return new CleptoBrowser();
+	@BeforeClass
+	public static void beforeClass() {
+		injector = Guice.createInjector(
+				new GsonModule(),
+				new CleptoBrowserModule()
+		);
 	}
 }
