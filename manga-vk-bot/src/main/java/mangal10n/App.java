@@ -1,5 +1,6 @@
 package mangal10n;
 
+import clepto.vk.Messages;
 import clepto.vk.VKBot;
 import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
@@ -9,15 +10,11 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
-import com.google.inject.name.Names;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
-import mangal10n.browser.impl.okhttp.OkHttpBrowser;
-import mangal10n.config.AppModule;
-import mangal10n.config.OcrModule;
-import mangal10n.config.WebServerUserModule;
+import mangal10n.config.*;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 
@@ -39,7 +36,6 @@ import java.util.stream.Stream;
 @Slf4j
 public class App {
 
-	private static final Browser browser = new OkHttpBrowser();
 	private static VKBot bot;
 	private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private static String[] translatorLinks = {
@@ -55,19 +51,15 @@ public class App {
 
 		injector = Guice.createInjector(
 				new AppModule(),
+				new OkHttpBrowserModule(),
+				new VkApiModule(),
 				new WebServerUserModule(),
 				new OcrModule()
 		);
 
-		Map<String, String> config = getConfig();
-		if (config.isEmpty()) {
-			log.error("No configuration file found!");
-			return;
-		}
-
 		initOcr();
 
-		bot = new VKBot(config.get("bot-id"), config.get("bot-token"));
+		bot = injector.getInstance(VKBot.class);
 		bot.getLongPoll().setHandler(App::handle);
 		bot.getLongPoll().start();
 		while (true);
@@ -83,7 +75,7 @@ public class App {
 			if (size.isEmpty()) return "Странно, не найдено ни одного размера фотки, которую ты скинул!";
 
 			executor.submit(() -> {
-				Request request = browser.requestBuilder()
+				Request request = injector.getInstance(Browser.class).requestBuilder()
 						.url(size.get().url)
 						.build();
 
@@ -122,7 +114,7 @@ public class App {
 									.append(translatorLink)
 									.append(encoded);
 						}
-						bot.messages().send(peer, builder.toString());
+						bot.getMessages().send(peer, builder.toString());
 					});
 				}
 			});
@@ -133,11 +125,5 @@ public class App {
 	private static void initOcr() {
 		TypeLiteral<Map<String, OCRService>> typeLiteral = new TypeLiteral<>(){};
 		ocrServices = new HashSet<>(injector.getInstance(Key.get(typeLiteral)).values());
-	}
-
-	private static Map<String, String> getConfig() {
-		TypeLiteral<Map<String, String>> typeLiteral = new TypeLiteral<>(){};
-		final Key<Map<String, String>> key = Key.get(typeLiteral, Names.named("configMap"));
-		return injector.getInstance(key);
 	}
 }

@@ -1,6 +1,9 @@
 package clepto.vk;
 
+import com.google.gson.Gson;
+import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
 
@@ -13,8 +16,9 @@ public class Messages extends VkModule {
 
 	private final Random random = new Random();
 
-	public Messages(VKBot bot) {
-		super(bot, "messages");
+	@Inject
+	public Messages(Gson gson, Browser browser, String accessToken) {
+		super(gson, browser, accessToken, "messages");
 	}
 
 	public void send(int peer, String message) {

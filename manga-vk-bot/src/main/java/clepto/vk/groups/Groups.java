@@ -1,22 +1,28 @@
 package clepto.vk.groups;
 
 import clepto.vk.VkModule;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import clepto.vk.VKBot;
+import mangal10n.browser.Browser;
 
 import java.util.Properties;
 
 @Slf4j
 public class Groups extends VkModule {
 
-	public Groups(VKBot bot) {
-		super(bot, "groups");
+	private final String groupId;
+
+	@Inject
+	public Groups(Gson gson, Browser browser, String accessToken, String groupId) {
+		super(gson, browser, accessToken, "groups");
+		this.groupId = groupId;
 	}
 
 	public LongPollData getLongPollServer() {
 		Properties params = new Properties();
-		params.put("group_id", getBot().getGroup());
+		params.put("group_id", groupId);
 
 		JsonObject json = execute(request("getLongPollServer", params));
 
@@ -35,7 +41,7 @@ public class Groups extends VkModule {
 
 	public void setDescription(String description) {
 		Properties params = new Properties();
-		params.put("group_id", getBot().getGroup());
+		params.put("group_id", groupId);
 
 		Properties appendBody = new Properties();
 		appendBody.put("description", description);

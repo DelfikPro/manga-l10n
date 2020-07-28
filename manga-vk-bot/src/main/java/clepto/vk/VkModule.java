@@ -1,5 +1,6 @@
 package clepto.vk;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -21,8 +22,9 @@ import static lombok.AccessLevel.PROTECTED;
 @Getter
 public abstract class VkModule {
 
-	private final Browser browser = new OkHttpBrowser();
-	private final VKBot bot;
+	private final Gson gson;
+	private final Browser browser;
+	private final String accessToken;
 	private final String sectionName;
 
 	protected Request request(String method, Properties params, Properties appendBody) {
@@ -34,7 +36,7 @@ public abstract class VkModule {
 		}
 
 		builder.addFormData("v", "5.103")
-				.addFormData("access_token", bot.getToken());
+				.addFormData("access_token", accessToken);
 
 		if (appendBody != null) {
 			appendBody.forEach((key, value) -> builder.addFormData(key.toString(), value.toString()));
@@ -57,7 +59,7 @@ public abstract class VkModule {
 			ByteArrayInputStream stream = new ByteArrayInputStream(response.body().bytes());
 
 			// Теперь этот массив в сам объект джсона
-			JsonObject json = GlobalBeans.getGson().fromJson(new InputStreamReader(stream), JsonObject.class);
+			JsonObject json = gson.fromJson(new InputStreamReader(stream), JsonObject.class);
 
 			if (!responseSubobject) return json;
 

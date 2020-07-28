@@ -1,16 +1,10 @@
 package clepto.vk;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -19,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public class VK {
+	
+	private static Gson gson;
 
 	public static String query(String method) {
 		return get("https://api.vk.com/method/" + method, "v=5.81&access_token=" + null);
@@ -40,12 +36,12 @@ public class VK {
 		try {
 			String server = VK.query("photos.getMessagesUploadServer");
 
-			JsonObject s = GlobalBeans.getGson().fromJson(server, JsonObject.class);
+			JsonObject s = gson.fromJson(server, JsonObject.class);
 			upload_url = s.getAsJsonObject("response").get("upload_url").getAsString();
 
 			String res = post_upload(upload_url, f);
 
-			JsonObject j = GlobalBeans.getGson().fromJson(res, JsonObject.class);
+			JsonObject j = gson.fromJson(res, JsonObject.class);
 
 			int _server = j.get("server").getAsInt();
 			String _photo = j.get("photo").getAsString();
@@ -55,7 +51,7 @@ public class VK {
 
 			res = VK.query("photos.saveMessagesPhoto", params);
 
-			j = GlobalBeans.getGson().fromJson(res, JsonObject.class);
+			j = gson.fromJson(res, JsonObject.class);
 			JsonArray arr = j.getAsJsonArray("response");
 			JsonObject g = arr.get(0).getAsJsonObject();
 			id = g.get("id").getAsString();
@@ -70,7 +66,7 @@ public class VK {
 		String data = query("users.get", "user_id=" + uid);
 		String full_name;
 		try {
-			JsonObject obj = GlobalBeans.getGson().fromJson(data, JsonObject.class);
+			JsonObject obj = gson.fromJson(data, JsonObject.class);
 			JsonArray response = obj.getAsJsonArray("response");
 			JsonObject _data = response.get(0).getAsJsonObject();
 			String first_name = _data.get("first_name").getAsString();
@@ -89,7 +85,7 @@ public class VK {
 	public static int getID(String link) {
 		String data = query("utils.resolveScreenName", "screen_name=" + link);
 		try {
-			JsonObject obj = GlobalBeans.getGson().fromJson(data, JsonObject.class);
+			JsonObject obj = gson.fromJson(data, JsonObject.class);
 			JsonObject response = obj.getAsJsonObject("response");
 			return response.get("object_id").getAsInt();
 		} catch (Exception e) {
@@ -100,7 +96,7 @@ public class VK {
 	public static int getUserID(String arg) {
 		String data = query("users.get", "user_ids=" + arg);
 		try {
-			JsonObject obj = GlobalBeans.getGson().fromJson(data, JsonObject.class);
+			JsonObject obj = gson.fromJson(data, JsonObject.class);
 			JsonArray response = obj.getAsJsonArray("response");
 			JsonObject _data = response.get(0).getAsJsonObject();
 			return _data.get("uid").getAsInt();

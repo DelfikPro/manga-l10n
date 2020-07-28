@@ -1,19 +1,25 @@
 package clepto.vk;
 
+import clepto.vk.groups.Groups;
 import clepto.vk.groups.LongPollData;
 import clepto.vk.model.Message;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.inject.Inject;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
-import mangal10n.browser.impl.okhttp.OkHttpBrowser;
 
 @Slf4j
 public class LongPoll extends VkModule implements Runnable {
 
-	private final Browser browser = new OkHttpBrowser();
+	private final Gson gson;
+	private final Browser browser;
+	private final Messages messages;
+	private final Groups groups;
+
 	protected String key;
 	protected String server;
 	protected String ts;
@@ -28,8 +34,13 @@ public class LongPoll extends VkModule implements Runnable {
 
 	private Thread thread;
 
-	public LongPoll(VKBot bot) {
-		super(bot, null);
+	@Inject
+	public LongPoll(Gson gson, Browser browser, String accessToken, Messages messages, Groups groups) {
+		super(gson, browser, accessToken, null);
+		this.gson = gson;
+		this.browser = browser;
+		this.messages = messages;
+		this.groups = groups;
 	}
 
 	public void start() {
@@ -37,7 +48,7 @@ public class LongPoll extends VkModule implements Runnable {
 	}
 
 	public void requestLongPollServer() {
-		LongPollData data = getBot().groups().getLongPollServer();
+		LongPollData data = groups.getLongPollServer();
 
 		key = data.getKey();
 		server = data.getServer();
@@ -91,7 +102,7 @@ public class LongPoll extends VkModule implements Runnable {
 				switch (eventType) {
 					case "message_new":
 						String message1 = object.getAsJsonObject("message").toString();
-						Message message = this.getBot().getGson().fromJson(message1, Message.class);
+						Message message = gson.fromJson(message1, Message.class);
 //						System.out.println(message);
 
 						String text = message.body != null ? message.body : message.text;
@@ -105,7 +116,7 @@ public class LongPoll extends VkModule implements Runnable {
 						if (handler != null) {
 							try {
 								String apply = handler.handle(peer_id, from_id, message);
-								if (apply != null) getBot().messages().send(peer_id, apply);
+								if (apply != null) messages.send(peer_id, apply);
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
