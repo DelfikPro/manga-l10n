@@ -1,4 +1,4 @@
-package mangal10n.vkbot;
+package mangal10n.vkapi;
 
 import com.google.gson.JsonElement;
 

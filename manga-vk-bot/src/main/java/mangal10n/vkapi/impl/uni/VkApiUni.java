@@ -3,7 +3,7 @@
  * https://gitlab.com/DmitriyMX/vk-api-uni
  */
 
-package mangal10n.vkbot.impl.uni;
+package mangal10n.vkapi.impl.uni;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -12,10 +12,10 @@ import lombok.RequiredArgsConstructor;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
-import mangal10n.vkbot.LongPollListener;
-import mangal10n.vkbot.Params;
-import mangal10n.vkbot.VkApi;
-import mangal10n.vkbot.VkApiException;
+import mangal10n.vkapi.LongPollListener;
+import mangal10n.vkapi.Params;
+import mangal10n.vkapi.VkApi;
+import mangal10n.vkapi.VkApiException;
 
 import java.io.IOException;
 

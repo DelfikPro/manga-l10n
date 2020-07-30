@@ -1,4 +1,4 @@
-package mangal10n.vkbot.impl.uni;
+package mangal10n.vkapi.impl.uni;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import mangal10n.browser.Browser;
 import mangal10n.browser.Request;
 import mangal10n.browser.Response;
-import mangal10n.vkbot.LongPollListener;
-import mangal10n.vkbot.VkApiException;
+import mangal10n.vkapi.LongPollListener;
+import mangal10n.vkapi.VkApiException;
 
 import java.io.IOException;
 import java.time.Duration;
