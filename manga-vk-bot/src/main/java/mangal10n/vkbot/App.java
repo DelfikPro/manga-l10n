@@ -15,10 +15,11 @@ import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
+import mangal10n.vkbot.translate.TranslateService;
+import mangal10n.vkbot.translate.impl.DeeplTranslateService;
+import mangal10n.vkbot.translate.impl.SystranTranslateService;
 
 import java.net.Proxy;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -34,9 +35,9 @@ public class App {
 
 	private static VKBot bot;
 	private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private static String[] translatorLinks = {
-			"https://www.deepl.com/translator#zh/ru/",
-			"https://translate.systran.net/translationTools/text?source=zh&target=en&input="
+	private static final TranslateService[] translateServices = {
+			new DeeplTranslateService(),
+			new SystranTranslateService()
 	};
 
 	private static final OCRService[] ocrServices = {
@@ -91,13 +92,12 @@ public class App {
 								.append(": ")
 								.append(sourceText);
 
-						String encoded = URLEncoder.encode(sourceText, StandardCharsets.UTF_8).replace("+", "%20");
-						for (String translatorLink : translatorLinks) {
+						final String encoded = TranslateService.encode(sourceText);
+						for (TranslateService translateService : translateServices) {
 							builder.append('\n')
 									.append(ocrService.getEmoji())
 									.append(' ')
-									.append(translatorLink)
-									.append(encoded);
+									.append(translateService.buildUrl(encoded));
 						}
 						bot.messages().send(peer, builder.toString());
 					});
