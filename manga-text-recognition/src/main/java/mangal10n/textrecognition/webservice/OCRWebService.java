@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import mangal10n.textrecognition.Language;
+import mangal10n.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import okhttp3.*;
@@ -14,9 +14,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 

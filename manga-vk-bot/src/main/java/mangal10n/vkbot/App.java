@@ -10,7 +10,7 @@ import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.ConfigUtils;
-import mangal10n.textrecognition.Language;
+import mangal10n.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
@@ -21,6 +21,7 @@ import mangal10n.vkbot.translate.impl.SystranTranslateService;
 
 import java.net.Proxy;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -73,10 +74,11 @@ public class App {
 				Response response = new Request(size.get().url, Method.GET).execute(Proxy.NO_PROXY);
 				for (OCRService ocrService : ocrServices) {
 					final CompletableFuture<String> future = new CompletableFuture<>();
+					Language sourceLang = Objects.requireNonNull(Language.valueOf(message.body));
 
 					executor.submit(() -> {
 						try {
-							future.complete(ocrService.doRecognition(response.getBody(), Language.valueOf(message.body))
+							future.complete(ocrService.doRecognition(response.getBody(), sourceLang)
 									.replaceAll("[\n\t\r]", " ")
 									.replaceAll("\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]", "[ССЫЛКИ НЕ ПЕРЕВОДИМ]")
 							);
@@ -97,7 +99,7 @@ public class App {
 							builder.append('\n')
 									.append(ocrService.getEmoji())
 									.append(' ')
-									.append(translateService.buildUrl(encoded));
+									.append(translateService.buildUrl(sourceLang, encoded));
 						}
 						bot.messages().send(peer, builder.toString());
 					});

@@ -1,7 +1,7 @@
 package mangal10n.textrecognition.easyscreen;
 
 import lombok.extern.slf4j.Slf4j;
-import mangal10n.textrecognition.Language;
+import mangal10n.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import okhttp3.*;
