@@ -1,6 +1,5 @@
 package mangal10n;
 
-import clepto.vk.VKBot;
 import clepto.vk.model.Attachment;
 import clepto.vk.model.Message;
 import clepto.vk.model.Photo;
@@ -18,6 +17,8 @@ import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
 import mangal10n.textrecognition.webservice.WebServerUser;
+import mangal10n.vkbot.VkBot;
+import mangal10n.vkbot.impl.clepto.CleptoVkBot;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
 public class App {
 
 	private static final Browser browser = new OkHttpBrowser();
-	private static VKBot bot;
+	private static VkBot bot;
 	private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 	private static String[] translatorLinks = {
 			"https://www.deepl.com/translator#zh/ru/",
@@ -62,20 +63,23 @@ public class App {
 			return;
 		}
 
-		bot = new VKBot(config.get("bot-id"), config.get("bot-token"));
-		bot.getLongPoll().setHandler(App::handle);
-		bot.getLongPoll().start();
+		bot = new CleptoVkBot(config.get("bot-id"), config.get("bot-token"));
+		bot.setIncomingMessageHandler(App::handler2);
+		bot.start();
 		while (true);
 	}
 
-	private static String handle(int peer, int sender, Message message) {
-		if (message.getAttachments() == null) return null;
+	private static void handler2(Message message) {
+		if (message.getAttachments() == null) return;
 		log.debug(message.toString());
 		for (Attachment attachment : message.attachments) {
 			if (!(attachment instanceof Photo)) continue;
 			Photo photo = (Photo) attachment;
 			Optional<SizeData> size = Stream.of(photo.getSizes()).reduce((a, b) -> a.width * a.height > b.width * b.height ? a : b);
-			if (size.isEmpty()) return "Странно, не найдено ни одного размера фотки, которую ты скинул!";
+			if (size.isEmpty()) {
+				log.warn("Странно, не найдено ни одного размера фотки, которую скинули!");
+				return;
+			}
 
 			executor.submit(() -> {
 				Request request = browser.requestBuilder()
@@ -116,12 +120,11 @@ public class App {
 									.append(translatorLink)
 									.append(encoded);
 						}
-						bot.messages().send(peer, builder.toString());
+						bot.sendMessage(message.getPeer_id(), builder.toString());
 					});
 				}
 			});
 		}
-		return null;
 	}
 
 	private static void initOcr() {
