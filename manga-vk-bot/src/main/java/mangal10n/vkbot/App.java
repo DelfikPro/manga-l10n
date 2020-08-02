@@ -10,16 +10,18 @@ import clepto.vk.model.Photo;
 import clepto.vk.model.SizeData;
 import lombok.extern.slf4j.Slf4j;
 import mangal10n.ConfigUtils;
-import mangal10n.textrecognition.Language;
+import mangal10n.Language;
 import mangal10n.textrecognition.OCRException;
 import mangal10n.textrecognition.OCRService;
 import mangal10n.textrecognition.easyscreen.EasyScreenOCR;
 import mangal10n.textrecognition.webservice.OCRWebService;
+import mangal10n.vkbot.translate.TranslateService;
+import mangal10n.vkbot.translate.impl.DeeplTranslateService;
+import mangal10n.vkbot.translate.impl.SystranTranslateService;
 
 import java.net.Proxy;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
@@ -34,9 +36,9 @@ public class App {
 
 	private static VKBot bot;
 	private static ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-	private static String[] translatorLinks = {
-			"https://www.deepl.com/translator#zh/ru/",
-			"https://translate.systran.net/translationTools/text?source=zh&target=en&input="
+	private static final TranslateService[] translateServices = {
+			new DeeplTranslateService(),
+			new SystranTranslateService()
 	};
 
 	private static final OCRService[] ocrServices = {
@@ -72,10 +74,11 @@ public class App {
 				Response response = new Request(size.get().url, Method.GET).execute(Proxy.NO_PROXY);
 				for (OCRService ocrService : ocrServices) {
 					final CompletableFuture<String> future = new CompletableFuture<>();
+					Language sourceLang = Objects.requireNonNull(Language.valueOf(message.body));
 
 					executor.submit(() -> {
 						try {
-							future.complete(ocrService.doRecognition(response.getBody(), Language.valueOf(message.body))
+							future.complete(ocrService.doRecognition(response.getBody(), sourceLang)
 									.replaceAll("[\n\t\r]", " ")
 									.replaceAll("\\b(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]", "[ССЫЛКИ НЕ ПЕРЕВОДИМ]")
 							);
@@ -91,13 +94,12 @@ public class App {
 								.append(": ")
 								.append(sourceText);
 
-						String encoded = URLEncoder.encode(sourceText, StandardCharsets.UTF_8).replace("+", "%20");
-						for (String translatorLink : translatorLinks) {
+						final String encoded = TranslateService.encode(sourceText);
+						for (TranslateService translateService : translateServices) {
 							builder.append('\n')
 									.append(ocrService.getEmoji())
 									.append(' ')
-									.append(translatorLink)
-									.append(encoded);
+									.append(translateService.buildUrl(sourceLang, encoded));
 						}
 						bot.messages().send(peer, builder.toString());
 					});
